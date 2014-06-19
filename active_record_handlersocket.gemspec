@@ -5,11 +5,11 @@ require "active_record_handlersocket/version"
 Gem::Specification.new do |s|
   s.name        = "active_record_handlersocket"
   s.version     = ActiveRecordHandlersocket::VERSION
-  s.authors     = ["sugilog"]
+  s.authors     = ["Takayuki Sugita"]
   s.email       = ["sugilog@gmail.com"]
-  s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.homepage    = "https://github.com/sugilog/active_record_handlersocket"
+  s.summary     = %q{HandlerSocket for ActiveRecord}
+  s.description = %q{Easy-to-use handlersocket from existing ActiveRecord Models}
 
   s.rubyforge_project = "active_record_handlersocket"
 
