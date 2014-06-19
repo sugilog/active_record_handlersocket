@@ -2,13 +2,15 @@ require 'handlersocket'
 
 module ActiveRecord
   module ARHandlerSocket
-    mattr_accessor :handlersocket_indexes
-    @@handlersocket_indexes ||= {}
+    mattr_accessor :indexes
+    @@indexes ||= {}
 
-    mattr_reader :connection
+    mattr_reader :connection, :index_count_cache
     # XXX: readonly
     config       = ActiveRecord::Base.connection.instance_variable_get(:@config)
     @@connection = HandlerSocket.new(:host => config[:host], :port => config[:hs_port].to_s)
+
+    @@index_count_cache = 0
 
     class CannotConnecError < StandardError; end
 
@@ -18,13 +20,17 @@ module ActiveRecord
       c.private_class_method *PrivateClassMethods.instance_methods(false)
     end
 
+    def self.index_count
+      @@index_count_cache += 1
+    end
+
     module ClassMethods
       def method_missing(method_name, *args, &block)
         case method_name.to_s
         when /^hsfind_(by|multi_by)_([_a-zA-Z]\w*)$/
           finder = :first if $1 == "by"
           finder = :multi if $1 == "multi_by"
-          key    = $2.to_sym
+          key    = $2
           hsfind(finder, key, args)
         else
           super
@@ -32,10 +38,11 @@ module ActiveRecord
       end
 
       def hsfind(finder, key, args)
-        options  = args.extract_options!
-        setting  = ARHandlerSocket.handlersocket_indexes[key]
-        id       = setting[:id]
-        operator = options[:operator] || "="
+        options   = args.extract_options!
+        index_key = hs_index_key(key)
+        setting   = ARHandlerSocket.indexes[index_key]
+        id        = setting[:id]
+        operator  = options[:operator] || "="
 
         open_index(key)
 
@@ -67,15 +74,17 @@ module ActiveRecord
 
     module PrivateClassMethods
       def handlersocket(key, index, fields)
-        if ARHandlerSocket.handlersocket_indexes.has_key?(key)
+        index_key = hs_index_key(key)
+
+        if ARHandlerSocket.indexes.has_key?(index_key)
           warn "#{self.name} handlersocket: #{key} was updated"
         end
 
-        key = key.to_sym
+        key = key
 
-        ARHandlerSocket.handlersocket_indexes.update(
-          key => {
-            :id     => key.object_id,
+        ARHandlerSocket.indexes.update(
+          index_key => {
+            :id     => ARHandlerSocket.index_count,
             :index  => index,
             :fields => fields,
             :opened => false
@@ -84,8 +93,9 @@ module ActiveRecord
       end
 
       def open_index(key)
-        setting = ARHandlerSocket.handlersocket_indexes[key]
-        config  = connection.instance_variable_get(:@config)
+        index_key = hs_index_key(key)
+        setting   = ARHandlerSocket.indexes[index_key]
+        config    = connection.instance_variable_get(:@config)
 
         if setting[:opened]
           return
@@ -116,8 +126,9 @@ module ActiveRecord
 
         case
         when signal == 0
-          setting = ARHandlerSocket.handlersocket_indexes[key]
-          fields  = setting[:fields]
+          index_key = hs_index_key(key)
+          setting   = ARHandlerSocket.indexes[index_key]
+          fields    = setting[:fields]
 
           result.map do |record|
             attrs = Hash[ *fields.zip(record).flatten ]
@@ -128,6 +139,10 @@ module ActiveRecord
         else
           raise ARHandlerSocket::CannotConnecError, result
         end
+      end
+
+      def hs_index_key(key)
+        [self.name, key].join(":")
       end
     end
   end
