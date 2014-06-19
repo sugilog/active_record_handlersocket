@@ -24,7 +24,7 @@ module ActiveRecord
         when /^hsfind_(by|multi_by)_([_a-zA-Z]\w*)$/
           finder = :first if $1 == "by"
           finder = :multi if $1 == "multi_by"
-          key    = $2
+          key    = $2.to_sym
           hsfind(finder, key, args)
         else
           super
@@ -71,7 +71,7 @@ module ActiveRecord
           warn "#{self.name} handlersocket: #{key} was updated"
         end
 
-        key = key.to_s
+        key = key.to_sym
 
         ARHandlerSocket.handlersocket_indexes.update(
           key => {
