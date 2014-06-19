@@ -11,8 +11,6 @@ Gem::Specification.new do |s|
   s.summary     = %q{HandlerSocket for ActiveRecord}
   s.description = %q{Easy-to-use handlersocket from existing ActiveRecord Models}
 
-  s.rubyforge_project = "active_record_handlersocket"
-
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
