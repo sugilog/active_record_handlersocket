@@ -44,7 +44,7 @@ module ActiveRecord
         id        = setting[:id]
         operator  = options[:operator] || "="
 
-        open_index(key)
+        open_index(index_key)
 
         case finder
         # XXX: experimental
@@ -61,11 +61,11 @@ module ActiveRecord
           results = ARHandlerSocket.connection.execute_multi(_args)
 
           results.map{|result|
-            hs_instantiate(key, result)
+            hs_instantiate(index_key, result)
           }.flatten
         when :first
           result = ARHandlerSocket.connection.execute_single(setting[:id], operator, args)
-          hs_instantiate(key, result).first
+          hs_instantiate(index_key, result).first
         else
           # XXX: Not Support
         end
@@ -92,14 +92,14 @@ module ActiveRecord
         )
       end
 
-      def open_index(key)
-        index_key = hs_index_key(key)
-        setting   = ARHandlerSocket.indexes[index_key]
-        config    = connection.instance_variable_get(:@config)
+      def open_index(index_key)
+        setting = ARHandlerSocket.indexes[index_key]
 
         if setting[:opened]
           return
         end
+
+        config   = connection.instance_variable_get(:@config)
 
         id       = setting[:id]
         database = config[:database]
@@ -121,12 +121,11 @@ module ActiveRecord
         end
       end
 
-      def hs_instantiate(key, result_on_single)
+      def hs_instantiate(index_key, result_on_single)
         signal, result = result_on_single
 
         case
         when signal == 0
-          index_key = hs_index_key(key)
           setting   = ARHandlerSocket.indexes[index_key]
           fields    = setting[:fields]
 
