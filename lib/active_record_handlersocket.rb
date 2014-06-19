@@ -100,7 +100,7 @@ module ActiveRecord
         signal = ARHandlerSocket.connection.open_index(id, database, table, index, fields)
 
         case
-        when signal.zero?
+        when signal == 0
           setting[:opened] = true
         when signal > 0
           error = ARHandlerSocket.conneciton.error
@@ -114,14 +114,17 @@ module ActiveRecord
       def hs_instantiate(key, result_on_single)
         signal, result = result_on_single
 
-        if signal >= 0
+        case
+        when signal == 0
           setting = ARHandlerSocket.handlersocket_indexes[key]
           fields  = setting[:fields]
 
-          result.each_with_object([]) do |record, map|
+          result.map do |record|
             attrs = Hash[ *fields.zip(record).flatten ]
-            map.push( instantiate(attrs) )
+            instantiate(attrs)
           end
+        when signal > 0
+          raise ArgumentError, "invalid argument given: #{result}"
         else
           raise ARHandlerSocket::CannotConnecError, result
         end
