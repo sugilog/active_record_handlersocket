@@ -32,3 +32,10 @@ Person.hsfind_multi_by_id(1, 2)
 ```
 
 
+development
+------------------------------------------------------------
+
+```
+mkdir vendor
+bundle install --path=vendor
+```
