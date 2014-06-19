@@ -20,29 +20,35 @@ module ActiveRecord
 
     module ClassMethods
       def method_missing(method_name, *args, &block)
-        if /^(find|find_all)_hs_with_(.+)$/ =~ method_name.to_s
-          find_type = $1
-          key       = $2.to_sym
-          find_hs(find_type, key, args)
+        case method_name.to_s
+        when /^hsfind_(by|multi_by)_([_a-zA-Z]\w*)$/
+          finder = :first if $1 == "by"
+          finder = :multi if $1 == "multi_by"
+          key    = $2
+          hsfind(finder, key, args)
         else
           super
         end
       end
 
-      def find_hs(find_type, key, args)
+      def hsfind(finder, key, args)
         options  = args.extract_options!
         setting  = ARHandlerSocket.handlersocket_indexes[key]
         id       = setting[:id]
         operator = options[:operator] || "="
 
-        if find_type == "find_all"
-          # XXX
+        open_index(key)
+
+        case finder
+        # XXX: experimental
+        when :multi
           _args = args.map{|arg|
             _arg = []
             _arg << setting[:id]
             _arg << operator
             _arg << [arg]
-            _arg << ( options[:limit] || _arg.last.size )
+            _arg << options[:limit] if options[:limit]
+            _arg
           }
 
           results = ARHandlerSocket.connection.execute_multi(_args)
@@ -50,9 +56,11 @@ module ActiveRecord
           results.map{|result|
             hs_instantiate(key, result)
           }.flatten
-        else
+        when :first
           result = ARHandlerSocket.connection.execute_single(setting[:id], operator, args)
           hs_instantiate(key, result).first
+        else
+          # XXX: Not Support
         end
       end
     end
@@ -60,25 +68,28 @@ module ActiveRecord
     module PrivateClassMethods
       def handlersocket(key, index, fields)
         if ARHandlerSocket.handlersocket_indexes.has_key?(key)
-          raise ArgumentError, "#{key} is already exists"
-        else
-          key = key.to_sym
-
-          ARHandlerSocket.handlersocket_indexes.update(
-            key => {
-              :id     => key.object_id,
-              :index  => index,
-              :fields => fields
-            }
-          )
-
-          open_index(key)
+          warn "#{self.name} handlersocket: #{key} was updated"
         end
+
+        key = key.to_s
+
+        ARHandlerSocket.handlersocket_indexes.update(
+          key => {
+            :id     => key.object_id,
+            :index  => index,
+            :fields => fields,
+            :opened => false
+          }
+        )
       end
 
       def open_index(key)
         setting = ARHandlerSocket.handlersocket_indexes[key]
         config  = connection.instance_variable_get(:@config)
+
+        if setting[:opened]
+          return
+        end
 
         id       = setting[:id]
         database = config[:database]
@@ -88,10 +99,15 @@ module ActiveRecord
 
         signal = ARHandlerSocket.connection.open_index(id, database, table, index, fields)
 
-        if signal >= 0
-          true
+        case
+        when signal.zero?
+          setting[:opened] = true
+        when signal > 0
+          error = ARHandlerSocket.conneciton.error
+          raise ArgumentError, "invalid setting given: #{error}"
         else
-          raise ARHandlerSocket::CannotConnecError, "open index failed"
+          # signal 2, Problem on assigned database name, table name, index name, or fields name
+          raise ARHandlerSocket::CannotConnecError, "connection lost"
         end
       end
 
