@@ -18,16 +18,16 @@ class Person < ActiveRecord::Base
 end
 ```
 
-Call `find_hs_with_#{key}` of `find_all_hs_with_#{key}` to get records as ActiveRecord object.
+Call `hsfind_by_#{key}` of `hsfind_multi_by_#{key}` to get record(s) as ActiveRecord object.
 
 ```
-Person.find_hs_with_id(1)
-#<Person id: 1, first_name: "Bob", family_name: "Marley", active: false>
+Person.hsfind_by_id(1)
+#<Person id: 1, first_name: "Bob", family_name: "Marley", age: 36>
 
-Person.find_all_hs_with_id(1, 2)
+Person.hsfind_multi_by_id(1, 2)
 [
-  #<Person id: 1, first_name: "Bob", family_name: "Marley", active: false>,
-  #<Person id: 2, first_name: "Pharrell", family_name: "Wiiliams", active: true>
+  #<Person id: 1, first_name: "Bob", family_name: "Marley", age: 36>,
+  #<Person id: 2, first_name: "Pharrell", family_name: "Wiiliams", age: 41>
 ]
 ```
 
