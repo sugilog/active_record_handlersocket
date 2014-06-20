@@ -3,7 +3,13 @@ module ActiveRecordHandlerSocket
     def hs_reconnect!
       hs_read_connection.reconnect
       hs_reset_opened_indexes
-      true
+      hs_active?
+    end
+
+    def hs_active?
+      [
+        hs_read_connection.stable_point
+      ].all?
     end
 
     module PrivateMethods
