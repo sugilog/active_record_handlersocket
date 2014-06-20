@@ -143,4 +143,8 @@ module ActiveRecord
       end
     end
   end
+
+  class Base
+    include ActiveRecord::ARHandlerSocket
+  end
 end

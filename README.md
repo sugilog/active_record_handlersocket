@@ -18,25 +18,24 @@ development_hs_read:
   database: ar_handler_socket
 ```
 
-Include ARHandlerSocket module into model class of ActiveReocrd.
+Define HandlerSocket index setting on your ActiveReocrd Model.
 
 ```
 class Person < ActiveRecord::Base
-  include ActiveRecord::ARHandlerSocket
-  handlersocket :id, "PRIMARY", %W[id first_name family_name active]
+  handlersocket :id, "PRIMARY", %W[id name age]
 end
 ```
 
-Call `hsfind_by_#{key}` of `hsfind_multi_by_#{key}` to get record(s) as ActiveRecord object.
+Call `hsfind_by_#{key}` of `hsfind_multi_by_#{key}` to get record(s) as ActiveRecord Object.
 
 ```
 Person.hsfind_by_id(1)
-#=> #<Person id: 1, first_name: "Bob", family_name: "Marley", age: 36>
+#=> #<Person id: 1, name: "Bob Marley", age: 36>
 
 Person.hsfind_multi_by_id(1, 2)
 #=> [
-#   #<Person id: 1, first_name: "Bob", family_name: "Marley", age: 36>,
-#   #<Person id: 2, first_name: "Pharrell", family_name: "Wiiliams", age: 41>
+#   #<Person id: 1, name: "Bob Marley", age: 36>,
+#   #<Person id: 2, name: "Pharrell Wiiliams", age: 41>
 # ]
 ```
 
