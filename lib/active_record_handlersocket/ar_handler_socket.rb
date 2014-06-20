@@ -3,11 +3,7 @@ module ActiveRecord
     mattr_accessor :indexes
     @@indexes ||= {}
 
-    mattr_reader :connection, :index_count_cache
-    # XXX: readonly
-    config       = ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"].symbolize_keys
-    @@connection = HandlerSocket.new(:host => config[:host], :port => config[:port].to_s)
-
+    mattr_reader :index_count_cache
     @@index_count_cache = 0
 
     class CannotConnecError < StandardError; end
@@ -16,6 +12,8 @@ module ActiveRecord
       c.extend ClassMethods
       c.extend PrivateClassMethods
       c.private_class_method *PrivateClassMethods.instance_methods(false)
+
+      c.__send__ :hs_establish_connection
     end
 
     def self.index_count
@@ -42,7 +40,7 @@ module ActiveRecord
         id        = setting[:id]
         operator  = options[:operator] || "="
 
-        open_index(index_key)
+        hs_open_index(index_key)
 
         case finder
         # XXX: experimental
@@ -56,13 +54,13 @@ module ActiveRecord
             _arg
           }
 
-          results = ARHandlerSocket.connection.execute_multi(_args)
+          results = hs_read_connection.execute_multi(_args)
 
           results.map{|result|
             hs_instantiate(index_key, result)
           }.flatten
         when :first
-          result = ARHandlerSocket.connection.execute_single(setting[:id], operator, args)
+          result = hs_read_connection.execute_single(setting[:id], operator, args)
           hs_instantiate(index_key, result).first
         else
           # XXX: Not Support
@@ -90,7 +88,7 @@ module ActiveRecord
         )
       end
 
-      def open_index(index_key)
+      def hs_open_index(index_key)
         setting = ARHandlerSocket.indexes[index_key]
 
         if setting[:opened]
@@ -105,16 +103,16 @@ module ActiveRecord
         index    = setting[:index]
         fields   = setting[:fields].join(",")
 
-        signal = ARHandlerSocket.connection.open_index(id, database, table, index, fields)
+        signal = hs_read_connection.open_index(id, database, table, index, fields)
 
         case
         when signal == 0
           setting[:opened] = true
         when signal > 0
-          error = ARHandlerSocket.conneciton.error
+          error = hs_read_connection.error
           raise ArgumentError, "invalid setting given: #{error}"
         else
-          error = ARHandlerSocket.connection.error
+          error = hs_read_connection.error
           raise ARHandlerSocket::CannotConnecError, "connection lost: #{error}"
         end
       end
@@ -140,6 +138,24 @@ module ActiveRecord
 
       def hs_index_key(key)
         [self.name, key].join(":")
+      end
+
+      # TODO: writeread connection
+      def hs_establish_connection(name = nil)
+        case name
+        when nil
+          hs_establish_connection("#{RAILS_ENV}_hs_read")
+        else
+          config = ActiveRecord::Base.configurations[name].symbolize_keys
+          @@hs_connections ||= {}
+          @@hs_connections.update(
+            :read => HandlerSocket.new(:host => config[:host], :port => config[:port].to_s)
+          )
+        end
+      end
+
+      def hs_read_connection
+        @@hs_connections[:read]
       end
     end
   end
