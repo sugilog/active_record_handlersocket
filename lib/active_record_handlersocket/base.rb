@@ -1,5 +1,5 @@
 module ActiveRecord
   class Base
-    include ActiveRecord::ARHandlerSocket
+    include ActiveRecordHandlerSocket
   end
 end
