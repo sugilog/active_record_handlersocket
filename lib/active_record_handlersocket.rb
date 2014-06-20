@@ -5,7 +5,7 @@ require 'handlersocket'
   manager
   finder 
   connection
-  ar_handler_socket
+  active_record_handler_socket
   base
 ].each do |file|
   require File.join("active_record_handlersocket", file)
