@@ -1,3 +1,5 @@
+RAILS_ENV = "development"
+
 ActiveRecord::Base.configurations = {
   "base" => {
     :adapter  => "mysql2",
@@ -6,7 +8,7 @@ ActiveRecord::Base.configurations = {
     :database => "ar_handler_socket",
     :encoding => "utf8"
   },
-  "hs_read" => {
+  "development_hs_read" => {
     :host     => "localhost",
     :port     => "9998",
     :database => "ar_handler_socket"

@@ -9,6 +9,15 @@ HandlerSocket for ActiveRecord; depends handlersocket gem https://github.com/miy
 usage
 ------------------------------------------------------------
 
+Update your `config/database.yml` of rails project. (Available to set database same as AR read/write database.)
+
+```
+development_hs_read:
+  host:     localhost
+  port:     9998
+  database: ar_handler_socket
+```
+
 Include ARHandlerSocket module into model class of ActiveReocrd.
 
 ```

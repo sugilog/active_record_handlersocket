@@ -5,7 +5,7 @@ module ActiveRecord
 
     mattr_reader :connection, :index_count_cache
     # XXX: readonly
-    config       = ActiveRecord::Base.configurations["hs_read"]
+    config       = ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"]
     @@connection = HandlerSocket.new(:host => config[:host], :port => config[:port].to_s)
 
     @@index_count_cache = 0
@@ -97,7 +97,7 @@ module ActiveRecord
           return
         end
 
-        config   = configurations["hs_read"]
+        config   = configurations["#{RAILS_ENV}_hs_read"]
 
         id       = setting[:id]
         database = config[:database]
