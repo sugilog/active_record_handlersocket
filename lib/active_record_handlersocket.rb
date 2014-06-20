@@ -2,6 +2,9 @@ require 'active_record'
 require 'handlersocket'
 
 %W[
+  manager
+  finder 
+  connection
   ar_handler_socket
   base
 ].each do |file|
