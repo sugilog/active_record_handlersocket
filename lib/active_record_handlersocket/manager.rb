@@ -29,6 +29,12 @@ module ActiveRecordHandlerSocket
       def hs_index_count
         @@hs_index_count_cache += 1
       end
+
+      def hs_reset_opened_indexes
+        @@hs_indexes.each do |_, setting|
+          setting[:opened] = false
+        end
+      end
     end
   end
 end

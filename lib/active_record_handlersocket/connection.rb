@@ -1,5 +1,11 @@
 module ActiveRecordHandlerSocket
   module Connection
+    def hs_reconnect!
+      hs_read_connection.reconnect
+      hs_reset_opened_indexes
+      true
+    end
+
     module PrivateMethods
       mattr_reader :hs_connections
       @@hs_connections = {}
