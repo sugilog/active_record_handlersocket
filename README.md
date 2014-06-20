@@ -76,11 +76,13 @@ mysql -u rails -e "show databases"
 
 
 mysql -u rails ar_handler_socket -e "CREATE TABLE people ( id int(11) NOT NULL AUTO_INCREMENT, name varchar(255) DEFAULT '', age int(11) DEFAULT NULL, status tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (id) ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8"
-mysql -u rails ar_handler_socket -e "show tables"
+mysql -u rails ar_handler_socket -e "CREATE TABLE hobbies ( id int(11) NOT NULL AUTO_INCREMENT, person_id int(11) NOT NULL, title varchar(255) DEFAULT '', created_at datetime DEFAULT NULL, updated_at datetime DEFAULT NULL, PRIMARY KEY (id), KEY index_hobbies_on_person_id (person_id) ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8"
+mysql -u rails ar_handler_socket -e "SHOW TABLES"
 
 +-----------------------------+
 | Tables_in_ar_handler_socket |
 +-----------------------------+
+| hobbies                     |
 | people                      |
 +-----------------------------+
 ```
