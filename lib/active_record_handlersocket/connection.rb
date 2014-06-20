@@ -6,6 +6,8 @@ module ActiveRecordHandlerSocket
       hs_active?
     end
 
+    # XXX: stable_point cannot return correct status before open_index.
+    #      connection establish with unknown port -> call stable_point -> retrun true
     def hs_active?
       [
         hs_read_connection.stable_point
