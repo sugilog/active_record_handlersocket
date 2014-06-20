@@ -5,8 +5,8 @@ module ActiveRecord
 
     mattr_reader :connection, :index_count_cache
     # XXX: readonly
-    config       = ActiveRecord::Base.connection.instance_variable_get(:@config)
-    @@connection = HandlerSocket.new(:host => config[:host], :port => config[:hs_port].to_s)
+    config       = ActiveRecord::Base.configurations["hs_read"]
+    @@connection = HandlerSocket.new(:host => config[:host], :port => config[:port].to_s)
 
     @@index_count_cache = 0
 
@@ -97,7 +97,7 @@ module ActiveRecord
           return
         end
 
-        config   = connection.instance_variable_get(:@config)
+        config   = configurations["hs_read"]
 
         id       = setting[:id]
         database = config[:database]
@@ -114,8 +114,8 @@ module ActiveRecord
           error = ARHandlerSocket.conneciton.error
           raise ArgumentError, "invalid setting given: #{error}"
         else
-          # signal 2, Problem on assigned database name, table name, index name, or fields name
-          raise ARHandlerSocket::CannotConnecError, "connection lost"
+          error = ARHandlerSocket.connection.error
+          raise ARHandlerSocket::CannotConnecError, "connection lost: #{error}"
         end
       end
 
