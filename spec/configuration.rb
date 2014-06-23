@@ -1,7 +1,5 @@
 require 'active_record'
 
-RAILS_ENV = "development" unless defined? RAILS_ENV
-
 ActiveRecord::Base.configurations = {
   "base" => {
     :adapter  => "mysql2",
@@ -11,6 +9,11 @@ ActiveRecord::Base.configurations = {
     :encoding => "utf8"
   },
   "development_hs_read" => {
+    :host     => "localhost",
+    :port     => "9998",
+    :database => "active_record_handler_socket_development" # unknown database
+  },
+  "test_hs_read" => {
     :host     => "localhost",
     :port     => "9998",
     :database => "active_record_handler_socket_test"

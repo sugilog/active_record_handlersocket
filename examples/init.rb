@@ -1,3 +1,5 @@
+RAILS_ENV = "development"
+
 %W[
   configuration
   person
