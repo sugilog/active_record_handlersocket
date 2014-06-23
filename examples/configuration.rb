@@ -7,13 +7,13 @@ ActiveRecord::Base.configurations = {
     :adapter  => "mysql2",
     :host     => "localhost",
     :username => "rails",
-    :database => "ar_handler_socket",
+    :database => "active_record_handler_socket",
     :encoding => "utf8"
   },
   "development_hs_read" => {
     :host     => "localhost",
     :port     => "9998",
-    :database => "ar_handler_socket"
+    :database => "active_record_handler_socket"
   }
 }
 
