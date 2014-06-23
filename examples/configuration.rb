@@ -1,4 +1,4 @@
-RAILS_ENV = "development"
+RAILS_ENV = "development" unless defined? RAILS_ENV
 
 ActiveRecord::Base.configurations = {
   "base" => {

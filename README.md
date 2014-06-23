@@ -95,7 +95,7 @@ bundle exec irb
 ```
 
 ```ruby
-require 'examples/person.rb'
+require 'example'
 #=> true
 
 Person.create(:name => "Bob Marley", :age => 36, :status => false)
