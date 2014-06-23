@@ -6,4 +6,5 @@ require File.join(spec_dir, "mock", "hobby")
 
 RSpec.configure do |config|
   config.mock_framework = :rspec
+  config.color = true
 end
