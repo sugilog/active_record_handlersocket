@@ -23,9 +23,13 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency "activerecord"
     s.add_development_dependency "mysql2"
     s.add_development_dependency "rspec"
+    s.add_development_dependency "factory_girl"
+    s.add_development_dependency "database_cleaner"
   else
     s.add_runtime_dependency "activerecord", "~> 2.3.18"
     s.add_development_dependency "mysql2", '0.2.18'
     s.add_development_dependency "rspec", "~> 2.11.0"
+    s.add_development_dependency "factory_girl", "2.3.2"
+    s.add_development_dependency "database_cleaner", "0.9.1"
   end
 end
