@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{HandlerSocket for ActiveRecord}
   s.description = %q{Easy-to-use handlersocket from existing ActiveRecord Models}
 
-  s.files         = `git ls-files`.split("\n")
+  s.files         = `git ls-files`.split("\n").select{|f| f !~ /^examples\// }
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
