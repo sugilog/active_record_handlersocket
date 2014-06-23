@@ -1,3 +1,6 @@
+require 'active_record'
+require 'mysql2'
+
 RAILS_ENV = "development" unless defined? RAILS_ENV
 
 ActiveRecord::Base.configurations = {
