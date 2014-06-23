@@ -24,11 +24,15 @@ module ActiveRecordHandlerSocket
         when nil
           hs_establish_connection("#{RAILS_ENV}_hs_read")
         else
-          config = ActiveRecord::Base.configurations[name].symbolize_keys
+          if config = ActiveRecord::Base.configurations[name]
+            config = config.symbolize_keys
 
-          @@hs_connections.update(
-            :read => HandlerSocket.new(:host => config[:host], :port => config[:port].to_s)
-          )
+            @@hs_connections.update(
+              :read => HandlerSocket.new(:host => config[:host], :port => config[:port].to_s)
+            )
+          else
+            raise ArgumentError, "unknown configuration: #{name}"
+          end
         end
       end
 

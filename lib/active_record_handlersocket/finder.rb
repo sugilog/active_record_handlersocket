@@ -1,5 +1,5 @@
 module ActiveRecordHandlerSocket
-  class CannotConnecError < StandardError; end
+  class CannotConnectError < StandardError; end
 
   module Finder
     def method_missing(method_name, *args, &block)
@@ -76,7 +76,7 @@ module ActiveRecordHandlerSocket
         else
           hs_reset_opened_indexes
           error = hs_read_connection.error
-          raise ActiveRecordHandlerSocket::CannotConnecError, "connection lost: #{error}"
+          raise ActiveRecordHandlerSocket::CannotConnectError, "connection lost: #{error}"
         end
       end
 
@@ -96,7 +96,7 @@ module ActiveRecordHandlerSocket
           raise ArgumentError, "invalid argument given: #{result}"
         else
           hs_reset_opened_indexes
-          raise ActiveRecordHandlerSocket::CannotConnecError, result
+          raise ActiveRecordHandlerSocket::CannotConnectError, result
         end
       end
     end
