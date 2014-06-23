@@ -21,9 +21,11 @@ Gem::Specification.new do |s|
 
   if RUBY_VERSION >= "1.8.7"
     s.add_runtime_dependency "activerecord"
+    s.add_development_dependency "mysql2"
     s.add_development_dependency "rspec"
   else
     s.add_runtime_dependency "activerecord", "~> 2.3.18"
+    s.add_development_dependency "mysql2", '0.2.18'
     s.add_development_dependency "rspec", "~> 2.11.0"
   end
 end
