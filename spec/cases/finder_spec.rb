@@ -5,12 +5,16 @@ describe "FinderSpec" do
     Person
   end
 
+  let :another_klass do
+    Hobby
+  end
+
   before :each do
     @bob = FactoryGirl.create(:bob)
     FactoryGirl.create(:pharrell)
   end
 
-  describe "finder" do
+  describe "hsfind" do
     context "when defined by handlersocket" do
       before :each do
         klass.delete_all
@@ -46,18 +50,6 @@ describe "FinderSpec" do
             klass.hsfind_multi_by_name("Bob")
           }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
         end
-      end
-
-      it "should include unknown key in error message" do
-        message = ""
-
-        begin
-          klass.hsfind_by_name("Bob")
-        rescue ActiveRecordHandlerSocket::UnknownIndexError => e
-          message = e.message
-        end
-
-        expect(message).to include("#{klass.name}:name")
       end
     end
 
@@ -173,6 +165,148 @@ describe "FinderSpec" do
             expect(hs_people).to eql(people)
           end
         end
+      end
+    end
+
+    describe "hsfind with connection" do
+      before :each do
+        ActiveRecord::Base.__send__(:hs_reconnect!)
+      end
+
+      it "should open index before find" do
+        expect{
+          klass.hsfind_by_id(1)
+        }.not_to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+        expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
+      end
+    end
+  end
+
+  describe "hs_open_index (before hsfind)" do
+    context "when index opened" do
+      it "should just return" do
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
+
+        expect(klass.__send__(:hs_open_index, klass.__send__(:hs_index_key, "id"))).to be_nil
+      end
+    end
+
+    context "when open index" do
+      before :each do
+        ActiveRecord::Base.__send__(:hs_reconnect!)
+      end
+
+      it "should return true and mark opened" do
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+
+        expect(klass.__send__(:hs_open_index, klass.__send__(:hs_index_key, "id"))).to be
+
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
+      end
+    end
+
+    context "when invalid result" do
+      before :each do
+        ActiveRecord::Base.__send__(:hs_reconnect!)
+        Hobby.hsfind_by_id(1)
+
+        ActiveRecord::Base.__send__(:hs_read_connection).stub(:open_index).and_return(2)
+        ActiveRecord::Base.__send__(:hs_read_connection).stub(:error).and_return("err")
+      end
+
+      it "should raise error" do
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+        expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
+
+        expect{
+          klass.__send__(:hs_open_index, klass.__send__(:hs_index_key, "id"))
+        }.to raise_error(ArgumentError)
+
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+        expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
+      end
+    end
+
+    context "when connection error" do
+      before :each do
+        ActiveRecord::Base.__send__(:hs_reconnect!)
+        another_klass.hsfind_by_id(1)
+
+        ActiveRecord::Base.__send__(:hs_read_connection).stub(:open_index).and_return(-1)
+        ActiveRecord::Base.__send__(:hs_read_connection).stub(:error).and_return("connection lost")
+      end
+
+      it "should raise error" do
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+        expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
+
+        expect{
+          klass.__send__(:hs_open_index, klass.__send__(:hs_index_key, "id"))
+        }.to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+        expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+      end
+    end
+  end
+
+  describe "hs_instantiate (after hsfind)" do
+    context "when valid result" do
+      it "should return single record" do
+        result = klass.__send__(:hs_instantiate, klass.__send__(:hs_index_key, "id"), [0, [["1", "MySQL", "19", "1"]]])
+
+        expect(result.size).to eql(1)
+
+        record = result.first
+        expect(record.id).to     eql(1)
+        expect(record.name).to   eql("MySQL")
+        expect(record.age).to    eql(19)
+        expect(record.status).to be
+      end
+
+      it "should return multi record" do
+        result = klass.__send__(:hs_instantiate, klass.__send__(:hs_index_key, "id"), [0, [["1", "MySQL", "19", "1"], ["2", "%#123", "55", "0"]]])
+
+        expect(result.size).to eql(2)
+
+        record = result.first
+        expect(record.id).to     eql(1)
+        expect(record.name).to   eql("MySQL")
+        expect(record.age).to    eql(19)
+        expect(record.status).to be
+
+        record = result.last
+        expect(record.id).to         eql(2)
+        expect(record.name).to       eql("%#123")
+        expect(record.age).to        eql(55)
+        expect(record.status).not_to be
+      end
+    end
+
+    context "when invalid result" do
+      it "should raise error" do
+        expect{
+          klass.__send__(:hs_instantiate, klass.__send__(:hs_index_key, "id"), [2, "kpnum"])
+        }.to raise_error(ArgumentError)
+      end
+    end
+
+    context "when connection error" do
+      before :each do
+        klass.hsfind_by_id(1)
+        another_klass.hsfind_by_id(1)
+      end
+
+      it "should raise error and mark opened_index closed" do
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
+        expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
+
+        expect{
+          klass.__send__(:hs_instantiate, klass.__send__(:hs_index_key, "id"), [-1, "connection lost"])
+        }.to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+
+        expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
+        expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).not_to be
       end
     end
   end
