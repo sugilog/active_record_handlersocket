@@ -1,4 +1,6 @@
 module ActiveRecordHandlerSocket
+  class UnknownIndexError < StandardError; end
+
   module Manager
     module PrivateMethods
       mattr_reader :hs_indexes, :hs_index_count_cache
@@ -24,6 +26,10 @@ module ActiveRecordHandlerSocket
 
       def hs_index_key(key)
         [self.name, key].join(":")
+      end
+
+      def hs_fetch_key(index_key)
+        @@hs_indexes[index_key] or raise UnknownIndexError, "unknown key given: #{index_key}"
       end
 
       def hs_index_count
