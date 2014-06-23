@@ -74,7 +74,7 @@ module ActiveRecordHandlerSocket
           error = hs_read_connection.error
           raise ArgumentError, "invalid setting given: #{error}"
         else
-          hs_reset_opened_index
+          hs_reset_opened_indexes
           error = hs_read_connection.error
           raise ActiveRecordHandlerSocket::CannotConnecError, "connection lost: #{error}"
         end
@@ -95,7 +95,7 @@ module ActiveRecordHandlerSocket
         when signal > 0
           raise ArgumentError, "invalid argument given: #{result}"
         else
-          hs_reset_opened_index
+          hs_reset_opened_indexes
           raise ActiveRecordHandlerSocket::CannotConnecError, result
         end
       end

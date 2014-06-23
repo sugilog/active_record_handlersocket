@@ -21,3 +21,6 @@ ActiveRecord::Base.configurations = {
 }
 
 ActiveRecord::Base.establish_connection "base"
+
+# require 'logger'
+# ActiveRecord::Base.logger = Logger.new(STDERR)
