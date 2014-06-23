@@ -15,11 +15,13 @@ module ActiveRecordHandlerSocket
     end
 
     def hsfind(finder, key, args)
-      options   = args.extract_options!
       index_key = hs_index_key(key)
-      setting   = hs_indexes[index_key]
-      id        = setting[:id]
-      operator  = options[:operator] || "="
+      setting   = hs_indexes.fetch(index_key)
+
+
+      options  = args.extract_options!
+      id       = setting[:id]
+      operator = options[:operator] || "="
 
       hs_open_index(index_key)
 
@@ -50,7 +52,7 @@ module ActiveRecordHandlerSocket
 
     module PrivateMethods
       def hs_open_index(index_key)
-        setting = hs_indexes[index_key]
+        setting = hs_indexes.fetch(index_key)
 
         if setting[:opened]
           return
@@ -84,7 +86,7 @@ module ActiveRecordHandlerSocket
 
         case
         when signal == 0
-          setting   = hs_indexes[index_key]
+          setting   = hs_indexes.fetch(index_key)
           fields    = setting[:fields]
 
           result.map do |record|
