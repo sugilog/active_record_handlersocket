@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_runtime_dependency "handlersocket"
+  s.add_development_dependency 'rake', '~> 0.9.2.2'
 
   if RUBY_VERSION >= "1.8.7"
     s.add_runtime_dependency "activerecord"
