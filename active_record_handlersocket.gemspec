@@ -17,7 +17,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
-  s.add_runtime_dependency "activerecord"
   s.add_runtime_dependency "handlersocket"
+
+  if RUBY_VERSION >= "1.8.7"
+    s.add_runtime_dependency "activerecord"
+    s.add_development_dependency "rspec"
+  else
+    s.add_runtime_dependency "activerecord", "~> 2.3.18"
+    s.add_development_dependency "rspec", "~> 2.11.0"
+  end
 end
