@@ -14,7 +14,7 @@ module ActiveRecordHandlerSocket
 
         case
         when columns = args[2]
-          warn "DEPRECATION WARNING: set columns as option, like; :columns => #{columns.inspect}"
+          ActiveSupport::Deprecation.warn "set columns as option, like; :columns => #{columns.inspect}"
         when columns = options[:columns]
           # ok
         else

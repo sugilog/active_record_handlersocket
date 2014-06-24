@@ -40,6 +40,16 @@ describe "ManagerSpec" do
   end
 
   describe "handlersocket" do
+    before :each do
+      @warn_log = StringIO.new
+      $stderr = @warn_log
+    end
+
+    after :each do
+      $stderr = STDERR
+      @warn_log = nil
+    end
+
     it "should not overwrite by another class" do
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(klass.__send__(:hs_index_key, "id"))).to be
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_key, "id"))).to be
@@ -55,9 +65,28 @@ describe "ManagerSpec" do
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:id]).to eql(initial_count + 3)
     end
 
+    it "should warn key updating" do
+      klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
+      klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
+
+      @warn_log.rewind
+      warned = @warn_log.read.chomp
+
+      expect(warned).to match(/#{klass.name} handlersocket: test_id was updated/)
+    end
+
     it "should be allow deprecated argument" do
       klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(["id"])
+    end
+
+    it "should warn deprecated argument" do
+      klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
+
+      @warn_log.rewind
+      warned = @warn_log.read.chomp
+
+      expect(warned).to match(/^DEPRECATION WARNING/)
     end
 
     it "should be all columns for columns is not specified" do
