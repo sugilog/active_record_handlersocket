@@ -19,7 +19,7 @@ describe "ConnectionSpec" do
       expect(ActiveRecord::Base.hs_reconnect!).to be
       expect{
         klass.hsfind_by_id(1)
-      }.not_to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+      }.not_to raise_error
     end
 
     it "should reset opened indexes" do

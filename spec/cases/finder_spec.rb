@@ -277,7 +277,7 @@ describe "FinderSpec" do
       it "should open index before find" do
         expect{
           klass.hsfind_by_id(1)
-        }.not_to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+        }.not_to raise_error
         expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
       end
     end

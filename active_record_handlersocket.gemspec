@@ -16,20 +16,23 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  # specify any dependencies here; for example:
-  s.add_runtime_dependency "activerecord", "~> 2.3.12"
   s.add_runtime_dependency "handlersocket", "~> 0.0.2"
-  s.add_development_dependency 'rake', '~> 0.9.2.2'
 
-  if RUBY_VERSION >= "1.8.7"
+  if RUBY_VERSION >= "2.0.0"
+    s.add_runtime_dependency "activerecord", "~> 3.2.18"
+
+    s.add_development_dependency "rake"
     s.add_development_dependency "mysql2"
     s.add_development_dependency "rspec"
     s.add_development_dependency "factory_girl"
     s.add_development_dependency "database_cleaner"
   else
-    s.add_development_dependency "mysql2", '0.2.18'
-    s.add_development_dependency "rspec", "~> 2.11.0"
-    s.add_development_dependency "factory_girl", "2.3.2"
+    s.add_runtime_dependency "activerecord", "~> 2.3.12"
+
+    s.add_development_dependency 'rake',             "~> 0.9.2.2"
+    s.add_development_dependency "mysql2",           "0.2.18"
+    s.add_development_dependency "rspec",            "~> 2.11.0"
+    s.add_development_dependency "factory_girl",     "2.3.2"
     s.add_development_dependency "database_cleaner", "0.9.1"
   end
 end

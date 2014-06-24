@@ -46,9 +46,19 @@ development
 Dev dependencies
 
 ```sh
-mkdir vendor
 bundle install --path=vendor
 ```
+
+if `handlersocket` gem cannot install via `bundle`.
+
+- comment out `handlersocket` line in gemspec.
+- do `bundle install --path=vendor` first.
+- install manually `handlersocket` gem like following...
+
+```
+gem i handlersocket --install-dir=vendor/ruby/2.1.0/ -- --with-opt-include=/usr/local/include/handlersocket
+```
+
 
 Prepare DB
 
