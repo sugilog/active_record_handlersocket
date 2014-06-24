@@ -1,4 +1,5 @@
 def execute(command)
+  command = command + " 2>&1"
   STDOUT.puts [ "**", "Exec:", command ].join " "
   result = system command
   STDOUT.puts [ "**", "Result:", result ].join " "
