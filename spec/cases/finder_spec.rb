@@ -10,9 +10,17 @@ describe "FinderSpec" do
   end
 
   before :each do
-    @bob = FactoryGirl.create(:bob)
-    FactoryGirl.create(:pharrell)
-    FactoryGirl.create(:john)
+    @bob      = FactoryGirl.create(:bob)
+    @pharrell = FactoryGirl.create(:pharrell)
+    @john     = FactoryGirl.create(:john)
+  end
+
+  describe "method_missing" do
+    it "should not overwite default method missing" do
+      expect(klass.find_by_id(1)).to eql(@bob)
+      expect(klass.find_by_age_and_status(36, false)).to eql(@bob)
+      expect(klass.find_all_by_age(36)).to eql([@bob, @john])
+    end
   end
 
   describe "hsfind" do
