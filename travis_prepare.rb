@@ -44,7 +44,6 @@ def mysql_bin
   File.dirname `which mysql`.chomp
 end
 
-
 if handlersocket_plugin_installed?
   STDOUT.puts "HandlerSocket-Plugin-for-MySQL already installed"
 else
