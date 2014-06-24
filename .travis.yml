@@ -3,6 +3,5 @@ rvm:
   - 1.8.7
   - 2.1.0
 before_install:
-  - mysql_config
   - ls -la /usr/include
   - gem install handlersocket -- --with-opt-include=/usr/include/handlersocket
