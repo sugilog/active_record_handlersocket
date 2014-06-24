@@ -1,0 +1,7 @@
+language: ruby
+before_install:
+  - ruby travis_prepare.rb
+  - gem install handlersocket -- --with-opt-include=/usr/local/include/handlersocket
+rvm:
+  - 1.8.7
+  - 2.1.1
