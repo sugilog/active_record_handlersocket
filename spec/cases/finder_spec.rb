@@ -214,6 +214,11 @@ describe "FinderSpec" do
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
+
+            hs_people = klass.hsfind_multi_by_age_and_status([36], :limit => 10)
+
+            expect(hs_people.size).to eql(2)
+            expect(hs_people).to eql(people)
           end
         end
 
@@ -226,12 +231,21 @@ describe "FinderSpec" do
             expect(hs_people.size).to eql(1)
             expect(hs_people).to eql(people)
           end
+
+          it "should find records by multi condition" do
+            people    = [klass.find_all_by_age_and_status(36, false), klass.find_all_by_age_and_status(36, true)].flatten
+            # XXX: Cannot use `true/false`
+            hs_people = klass.hsfind_multi_by_age_and_status([36, 0], [36, 1], :limit => 10)
+
+            expect(hs_people.size).to eql(2)
+            expect(hs_people).to eql(people)
+          end
         end
 
         context "when use not 1st sequence column" do
           it "should find records" do
             # XXX: Cannot use `true/false`
-            hs_people = klass.hsfind_multi_by_age_and_status(0, :limit => 10)
+            hs_people = klass.hsfind_multi_by_age_and_status([0], :limit => 10)
 
             expect(hs_people).to be_empty
           end

@@ -31,7 +31,7 @@ module ActiveRecordHandlerSocket
           _arg = []
           _arg << setting[:id]
           _arg << operator
-          _arg << [arg]
+          _arg << Array(arg)
           _arg << options[:limit] if options[:limit]
           _arg
         }
