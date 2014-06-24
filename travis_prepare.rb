@@ -1,6 +1,7 @@
 def execute(command)
   STDOUT.puts [ "**", "Exec:", command ].join " "
-  system command
+  result = system command
+  STDOUT.puts [ "**", "Result:", result ].join " "
 end
 
 def handlersocket_plugin_installed?
@@ -25,7 +26,8 @@ def make_handler_socket
 end
 
 def mysql_source
-  File.basename mysql_filename, ".tar.gz"
+  dirname = File.basename mysql_filename, ".tar.gz"
+  File.expand_path dirname
 end
 
 def mysql_download_url
