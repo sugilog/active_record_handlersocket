@@ -26,7 +26,7 @@ def make_handler_socket
 end
 
 def handlersocket_plugin_dir
-  execute "HandlerSocket-Plugin-for-MySQL"
+  "HandlerSocket-Plugin-for-MySQL"
 end
 
 def mysql_source
