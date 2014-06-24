@@ -23,7 +23,23 @@ def make_handler_socket
   execute "cd #{handlersocket_plugin_dir}; ./autogen.sh"
   execute "cd #{handlersocket_plugin_dir}; ./configure --with-mysql-source=#{mysql_source} --with-mysql-bindir=#{mysql_bin}"
   execute "cd #{handlersocket_plugin_dir}; make"
-  execute "cd #{handlersocket_plugin_dir}; make install"
+  execute "cd #{handlersocket_plugin_dir}; sudo make install"
+end
+
+def update_mysql_config
+  original_config = `sudo cat /etc/my.cnf`
+
+  File.open "my.cnf", "w" do |f|
+    f.puts original_config
+    f.puts handlersocket_config
+  end
+
+  execute "sudo mv -f my.cnf /etc/my.cnf"
+end
+
+def add_handlersocket_for_mysql
+  execute %Q|mysql -u root -e "install plugin handlersocket soname 'handlersocket.so'"|
+  execute %Q|mysql -u root -e "SHOW PLUGINS"|
 end
 
 def base_dir
@@ -56,10 +72,26 @@ def mysql_bin
   File.dirname `which mysql`.chomp
 end
 
+def handlersocket_config
+  <<-EOC
+[mysqld]
+handlersocket_port    = 9998
+handlersocket_port_wr = 9999
+handlersocket_address =
+handlersocket_verbose = 0
+handlersocket_timeout = 300
+handlersocket_threads = 16
+thread_concurrency    = 128
+open_files_limit      = 65535
+  EOC
+end
+
 if handlersocket_plugin_installed?
   STDOUT.puts "HandlerSocket-Plugin-for-MySQL already installed"
 else
   clone_handler_socket
   prepare_mysql_source
   make_handler_socket
+  update_mysql_config
+  add_handlersocket_for_mysql
 end
