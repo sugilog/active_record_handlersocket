@@ -28,7 +28,7 @@ end
 
 def base_dir
   dir = File.dirname __FILE__
-  FIle.expand_path dir
+  File.expand_path dir
 end
 
 def handlersocket_plugin_dir
