@@ -7,7 +7,20 @@ module ActiveRecordHandlerSocket
       @@hs_indexes = {}
       @@hs_index_count_cache = 0
 
-      def handlersocket(key, index, fields)
+      def handlersocket(*args)
+        options = args.extract_options!
+        key     = args[0]
+        index   = args[1]
+
+        case
+        when columns = args[2]
+          warn "DEPRECATION WARNING: set columns as option, like; :columns => #{columns.inspect}"
+        when columns = options[:columns]
+          # ok
+        else
+          columns = column_names
+        end
+
         index_key = hs_index_key(key)
 
         if @@hs_indexes.has_key?(index_key)
@@ -18,7 +31,7 @@ module ActiveRecordHandlerSocket
           index_key => {
             :id     => hs_index_count,
             :index  => index,
-            :fields => fields,
+            :fields => columns,
             :opened => false
           }
         )

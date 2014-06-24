@@ -45,14 +45,24 @@ describe "ManagerSpec" do
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_key, "id"))).to be
     end
 
-    it "should not increment id by each set" do
+    it "should increment id by each set" do
       initial_count = klass.__send__(:hs_index_count_cache)
-      klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
+      klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:id]).to eql(initial_count + 1)
-      another_klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
+      another_klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
       expect(ActiveRecord::Base.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "test_id")][:id]).to eql(initial_count + 2)
-      klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
+      klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:id]).to eql(initial_count + 3)
+    end
+
+    it "should be allow deprecated argument" do
+      klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(["id"])
+    end
+
+    it "should be all columns for columns is not specified" do
+      klass.__send__(:handlersocket, "test_id", "PRIMARY")
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(klass.column_names)
     end
   end
 
