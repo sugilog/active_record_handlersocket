@@ -11,22 +11,22 @@ end
 
 def clone_handler_socket
   execute "git clone https://github.com/DeNA/HandlerSocket-Plugin-for-MySQL.git"
-  execute "cd HandlerSocket-Plugin-for-MySQL"
 end
 
 def prepare_mysql_source
-  execute "wget #{mysql_download_url}"
-  execute "tar xvf #{mysql_filename}"
+  execute "cd #{handlersocket_plugin_dir}; wget #{mysql_download_url}"
+  execute "cd #{handlersocket_plugin_dir}; tar xvf #{mysql_filename}"
 end
 
 def make_handler_socket
-  execute "pwd"
-  execute "ls -lah"
+  execute "cd #{handlersocket_plugin_dir}; ./autogen.sh"
+  execute "cd #{handlersocket_plugin_dir}; ./configure --with-mysql-source=#{mysql_source} --with-mysql-bindir=#{mysql_bin}"
+  execute "cd #{handlersocket_plugin_dir}; make"
+  execute "cd #{handlersocket_plugin_dir}; make install"
+end
 
-  execute "./autogen.sh"
-  execute "./configure --with-mysql-source=#{mysql_source} --with-mysql-bindir=#{mysql_bin}"
-  execute "make"
-  execute "make install"
+def handlersocket_plugin_dir
+  execute "HandlerSocket-Plugin-for-MySQL"
 end
 
 def mysql_source
