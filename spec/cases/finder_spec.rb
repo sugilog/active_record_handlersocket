@@ -12,6 +12,7 @@ describe "FinderSpec" do
   before :each do
     @bob = FactoryGirl.create(:bob)
     FactoryGirl.create(:pharrell)
+    FactoryGirl.create(:john)
   end
 
   describe "hsfind" do
@@ -59,6 +60,7 @@ describe "FinderSpec" do
           person    = klass.find_by_id(1)
           hs_person = klass.hsfind_by_id(1)
 
+          expect(hs_person).not_to be_nil
           expect(hs_person).to eql(person)
         end
 
@@ -76,6 +78,7 @@ describe "FinderSpec" do
           person    = klass.find_all_by_id([1])
           hs_person = klass.hsfind_multi_by_id(1)
 
+          expect(hs_person.size).to eql(1)
           expect(hs_person).to eql(person)
         end
 
@@ -96,7 +99,7 @@ describe "FinderSpec" do
       end
     end
 
-    context "when finder with options" do
+    describe "finder with options" do
       context "for :single" do
         context "with operator option" do
           it "should find greater value record" do
@@ -113,6 +116,7 @@ describe "FinderSpec" do
             person    = klass.find_by_id(2)
             hs_person = klass.hsfind_by_id(3, :operator => "<")
 
+            expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
 
             hs_person = klass.hsfind_by_id(0, :operator => "<")
@@ -126,6 +130,7 @@ describe "FinderSpec" do
             person    = klass.find_by_id(2)
             hs_person = klass.hsfind_by_id(3, :operator => "<", :limit => 10)
 
+            expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
             expect(hs_person).not_to be_kind_of(Array)
           end
@@ -159,7 +164,7 @@ describe "FinderSpec" do
 
         context "with limit option" do
           it "should find greater value records" do
-            people    = klass.find_all_by_id([1, 2])
+            people    = klass.find_all_by_id([1, 2, 3])
             hs_people = klass.hsfind_multi_by_id(0, :operator => ">", :limit => 10)
 
             expect(hs_people).to eql(people)
@@ -168,7 +173,73 @@ describe "FinderSpec" do
       end
     end
 
-    describe "hsfind with connection" do
+    describe "with multi column index" do
+      context "for :single" do
+        context "when use 1st sequence column" do
+          it "should find record" do
+            person    = klass.find_by_age(36)
+            hs_person = klass.hsfind_by_age_and_status(36)
+
+            expect(hs_person).not_to be_nil
+            expect(hs_person).to eql(person)
+          end
+        end
+
+        context "when use all sequence columns" do
+          it "should find record" do
+            person    = klass.find_by_age_and_status(36, false)
+            # XXX: Cannot use `true/false`
+            hs_person = klass.hsfind_by_age_and_status(36, 0)
+
+            expect(hs_person).not_to be_nil
+            expect(hs_person).to eql(person)
+          end
+        end
+
+        context "when use not 1st sequence column" do
+          it "should not find record" do
+            # XXX: Cannot use `true/false`
+            hs_person = klass.hsfind_by_age_and_status(0)
+
+            expect(hs_person).to be_nil
+          end
+        end
+      end
+
+      context "for :multi" do
+        context "when use 1st sequence column" do
+          it "should find records" do
+            people    = klass.find_all_by_age(36)
+            hs_people = klass.hsfind_multi_by_age_and_status(36, :limit => 10)
+
+            expect(hs_people.size).to eql(2)
+            expect(hs_people).to eql(people)
+          end
+        end
+
+        context "when use all sequence columns" do
+          it "should find records" do
+            people    = klass.find_all_by_age_and_status(36, false)
+            # XXX: Cannot use `true/false`
+            hs_people = klass.hsfind_multi_by_age_and_status([36, 0], :limit => 10)
+
+            expect(hs_people.size).to eql(1)
+            expect(hs_people).to eql(people)
+          end
+        end
+
+        context "when use not 1st sequence column" do
+          it "should find records" do
+            # XXX: Cannot use `true/false`
+            hs_people = klass.hsfind_multi_by_age_and_status(0, :limit => 10)
+
+            expect(hs_people).to be_empty
+          end
+        end
+      end
+    end
+
+    describe "with connection" do
       before :each do
         ActiveRecord::Base.__send__(:hs_reconnect!)
       end

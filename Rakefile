@@ -30,9 +30,17 @@ namespace :db do
       title      varchar(255)     DEFAULT '',
       created_at datetime DEFAULT NULL,
       updated_at datetime DEFAULT NULL,
-      PRIMARY KEY (id),
-      KEY index_hobbies_on_person_id (person_id)
+      PRIMARY KEY (id)
     ].join(" ")
+  }
+
+  INDEXES = {
+    :people => {
+      :index_people_on_age_and_status => %W[age status]
+    },
+    :hobbies => {
+      :index_hobbies_on_person_id => %W[person_id]
+    }
   }
 
   def mysql(query, options = {})
@@ -74,12 +82,26 @@ namespace :db do
     end
   end
 
+  desc "create indexes for active_record_handler_socket"
+  task :create_indexes do
+    DATABASES.each do |database|
+      INDEXES.each do |table, indexes|
+        indexes.each do |index_name, columns|
+          mysql "CREATE INDEX #{index_name} USING btree ON #{table} (#{columns.join(",")})", :database => database
+        end
+
+        mysql "SHOW INDEXES FROM #{table}", :database => database
+      end
+    end
+  end
+
   desc "run db tasks}"
   task :prepare do
     %W[
       db:create_user
       db:create_databases
       db:create_tables
+      db:create_indexes
     ].each do |task|
       Rake::Task[task].invoke
     end

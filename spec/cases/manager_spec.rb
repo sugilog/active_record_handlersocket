@@ -9,13 +9,6 @@ describe "ManagerSpec" do
     Hobby
   end
 
-  before :each do
-    @bob = FactoryGirl.create(:bob)
-    FactoryGirl.create(:pharrell)
-
-    ActiveRecord::Base.__send__(:hs_reset_opened_indexes)
-  end
-
   describe "module attributes" do
     describe "hs_indexes" do
       it "should be private" do

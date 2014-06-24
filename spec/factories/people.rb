@@ -12,4 +12,11 @@ FactoryGirl.define do
     age     41
     status  true
   end
+
+  factory :john, :class => Person do
+    id      3
+    name    "John Legend"
+    age     36
+    status  true
+  end
 end
