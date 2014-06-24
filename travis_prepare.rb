@@ -20,6 +20,9 @@ def prepare_mysql_source
 end
 
 def make_handler_socket
+  execute "pwd"
+  execute "ls -lah"
+
   execute "./autogen.sh"
   execute "./configure --with-mysql-source=#{mysql_source} --with-mysql-bindir=#{mysql_bin}"
   execute "make"
