@@ -133,10 +133,10 @@ describe "FinderSpec" do
           end
         end
 
-        context "with limit option" do
-          it "should ignore limit option" do
+        context "with each_limit option" do
+          it "should ignore each_limit option" do
             person    = klass.find_by_id(2)
-            hs_person = klass.hsfind_by_id(3, :operator => "<", :limit => 10)
+            hs_person = klass.hsfind_by_id(3, :operator => "<", :each_limit => 10)
 
             expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
@@ -170,12 +170,20 @@ describe "FinderSpec" do
           end
         end
 
-        context "with limit option" do
+        context "with each_limit option" do
           it "should find greater value records" do
             people    = klass.find_all_by_id([1, 2, 3])
-            hs_people = klass.hsfind_multi_by_id(0, :operator => ">", :limit => 10)
+            hs_people = klass.hsfind_multi_by_id(0, :operator => ">", :each_limit => 10)
 
             expect(hs_people).to eql(people)
+          end
+        end
+
+        context "with discarded limit option" do
+          it "should ignore option" do
+            hs_people = klass.hsfind_multi_by_id(0, :operator => ">", :limit => 10)
+
+            expect(hs_people).to eql([@bob])
           end
         end
       end
@@ -218,12 +226,12 @@ describe "FinderSpec" do
         context "when use 1st sequence column" do
           it "should find records" do
             people    = klass.find_all_by_age(36)
-            hs_people = klass.hsfind_multi_by_age_and_status(36, :limit => 10)
+            hs_people = klass.hsfind_multi_by_age_and_status(36, :each_limit => 10)
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
 
-            hs_people = klass.hsfind_multi_by_age_and_status([36], :limit => 10)
+            hs_people = klass.hsfind_multi_by_age_and_status([36], :each_limit => 10)
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
@@ -234,7 +242,7 @@ describe "FinderSpec" do
           it "should find records" do
             people    = klass.find_all_by_age_and_status(36, false)
             # XXX: Cannot use `true/false`
-            hs_people = klass.hsfind_multi_by_age_and_status([36, 0], :limit => 10)
+            hs_people = klass.hsfind_multi_by_age_and_status([36, 0], :each_limit => 10)
 
             expect(hs_people.size).to eql(1)
             expect(hs_people).to eql(people)
@@ -243,7 +251,7 @@ describe "FinderSpec" do
           it "should find records by multi condition" do
             people    = [klass.find_all_by_age_and_status(36, false), klass.find_all_by_age_and_status(36, true)].flatten
             # XXX: Cannot use `true/false`
-            hs_people = klass.hsfind_multi_by_age_and_status([36, 0], [36, 1], :limit => 10)
+            hs_people = klass.hsfind_multi_by_age_and_status([36, 0], [36, 1], :each_limit => 10)
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
@@ -253,7 +261,7 @@ describe "FinderSpec" do
         context "when use not 1st sequence column" do
           it "should find records" do
             # XXX: Cannot use `true/false`
-            hs_people = klass.hsfind_multi_by_age_and_status([0], :limit => 10)
+            hs_people = klass.hsfind_multi_by_age_and_status([0], :each_limit => 10)
 
             expect(hs_people).to be_empty
           end
