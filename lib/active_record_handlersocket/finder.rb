@@ -25,16 +25,9 @@ module ActiveRecordHandlerSocket
       hs_open_index(index_key)
 
       case finder
-      # XXX: experimental
       when :multi
-        _args = args.map{|arg|
-          _arg = []
-          _arg << setting[:id]
-          _arg << operator
-          _arg << Array(arg)
-          _arg << options[:each_limit] if options[:each_limit]
-          _arg
-        }
+        limit = options[:each_limit] || 1
+        _args = args.map{|arg| [id, operator, Array(arg), limit] }
 
         results = hs_read_connection.execute_multi(_args)
 
@@ -42,10 +35,10 @@ module ActiveRecordHandlerSocket
           hs_instantiate(index_key, result)
         }.flatten
       when :first
-        result = hs_read_connection.execute_single(setting[:id], operator, args)
+        result = hs_read_connection.execute_single(id, operator, args)
         hs_instantiate(index_key, result).first
       else
-        # XXX: Not Support
+        raise ArgumentError, "unknown hsfind type: #{finder}"
       end
     end
 
@@ -88,10 +81,10 @@ module ActiveRecordHandlerSocket
           setting = hs_fetch_key(index_key)
           fields  = setting[:fields]
 
-          result.map do |record|
+          result.map{|record|
             attrs = Hash[ *fields.zip(record).flatten ]
             instantiate(attrs)
-          end
+          }
         when signal > 0
           raise ArgumentError, "invalid argument given: #{result}"
         else
