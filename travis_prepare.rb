@@ -15,7 +15,8 @@ end
 
 def prepare_mysql_source
   execute "cd #{handlersocket_plugin_dir}; wget #{mysql_download_url}"
-  execute "cd #{handlersocket_plugin_dir}; tar xvf #{mysql_filename}"
+  # if on debug, add v option for tar command.
+  execute "cd #{handlersocket_plugin_dir}; tar xf #{mysql_filename}"
 end
 
 def make_handler_socket
@@ -25,13 +26,18 @@ def make_handler_socket
   execute "cd #{handlersocket_plugin_dir}; make install"
 end
 
+def base_dir
+  dir = File.dirname __FILE__
+  FIle.expand_path dir
+end
+
 def handlersocket_plugin_dir
   "HandlerSocket-Plugin-for-MySQL"
 end
 
 def mysql_source
   dirname = File.basename mysql_filename, ".tar.gz"
-  File.expand_path dirname
+  File.join base_dir, handlersocket_plugin_dir, dirname
 end
 
 def mysql_download_url
