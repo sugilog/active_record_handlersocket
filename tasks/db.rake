@@ -25,12 +25,23 @@ namespace :db do
   }
 
   INDEXES = {
-    :people => {
-      :index_people_on_age_and_status => %W[age status]
-    },
-    :hobbies => {
-      :index_hobbies_on_person_id => %W[person_id]
-    }
+    :people => [
+      {
+        :name    => :index_people_on_age_and_status,
+        :columns => %W[age status]
+      }
+    ],
+    :hobbies => [
+      {
+        :name    => :index_hobbies_on_person_id,
+        :columns => %W[person_id]
+      },
+      {
+        :name    => :index_hobbies_on_name,
+        :columns => %W[name],
+        :unique  => true
+      }
+    ]
   }
 
   def mysql(query, options = {})
@@ -76,8 +87,8 @@ namespace :db do
   task :create_indexes do
     DATABASES.each do |database|
       INDEXES.each do |table, indexes|
-        indexes.each do |index_name, columns|
-          mysql "CREATE INDEX #{index_name} USING btree ON #{table} (#{columns.join(",")})", :database => database
+        indexes.each do |config|
+          mysql "CREATE #{config[:unique] ? "UNIQUE" : ""} INDEX #{config[:name]} USING btree ON #{table} (#{config[:columns].join(",")})", :database => database
         end
 
         mysql "SHOW INDEXES FROM #{table}", :database => database
@@ -85,7 +96,7 @@ namespace :db do
     end
   end
 
-  desc "run db tasks}"
+  desc "run db tasks"
   task :prepare do
     %W[
       db:create_user
@@ -94,6 +105,13 @@ namespace :db do
       db:create_indexes
     ].each do |task|
       Rake::Task[task].invoke
+    end
+  end
+
+  desc "drop databases"
+  task :drop do
+    DATABASES.each do |database|
+      mysql "DROP DATABASE #{database}"
     end
   end
 end
