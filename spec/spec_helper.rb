@@ -8,6 +8,7 @@ require File.join(spec_dir, "mock", "person")
 require File.join(spec_dir, "mock", "hobby")
 
 require File.join(spec_dir, "helpers", "find_helper")
+require File.join(spec_dir, "helpers", "stub_helper")
 
 require 'factory_girl'
 require 'database_cleaner'
@@ -34,4 +35,5 @@ RSpec.configure do |config|
   end
 
   config.include FindHelper
+  config.include StubHelper
 end

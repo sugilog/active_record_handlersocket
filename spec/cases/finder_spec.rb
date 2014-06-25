@@ -353,8 +353,8 @@ describe "FinderSpec" do
         ActiveRecord::Base.__send__(:hs_reconnect!)
         Hobby.hsfind_by_id(1)
 
-        ActiveRecord::Base.__send__(:hs_read_connection).stub(:open_index).and_return(2)
-        ActiveRecord::Base.__send__(:hs_read_connection).stub(:error).and_return("err")
+        stub_object(ActiveRecord::Base.__send__(:hs_read_connection), :open_index, 2)
+        stub_object(ActiveRecord::Base.__send__(:hs_read_connection), :error, "err")
       end
 
       it "should raise error" do
@@ -375,8 +375,8 @@ describe "FinderSpec" do
         ActiveRecord::Base.__send__(:hs_reconnect!)
         another_klass.hsfind_by_id(1)
 
-        ActiveRecord::Base.__send__(:hs_read_connection).stub(:open_index).and_return(-1)
-        ActiveRecord::Base.__send__(:hs_read_connection).stub(:error).and_return("connection lost")
+        stub_object(ActiveRecord::Base.__send__(:hs_read_connection), :open_index, -1)
+        stub_object(ActiveRecord::Base.__send__(:hs_read_connection), :error, "connection lost")
       end
 
       it "should raise error" do
