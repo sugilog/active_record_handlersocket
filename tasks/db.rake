@@ -37,8 +37,8 @@ namespace :db do
         :columns => %W[person_id]
       },
       {
-        :name    => :index_hobbies_on_name,
-        :columns => %W[name],
+        :name    => :index_hobbies_on_title,
+        :columns => %W[title],
         :unique  => true
       }
     ]
