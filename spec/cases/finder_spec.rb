@@ -19,7 +19,7 @@ describe "FinderSpec" do
     it "should not overwite default method missing" do
       expect(klass.find_by_id(1)).to eql(@bob)
       expect(klass.find_by_age_and_status(36, false)).to eql(@bob)
-      expect(klass.find_all_by_age(36)).to eql([@bob, @john])
+      expect(find_all(klass, :age => 36)).to eql([@bob, @john])
     end
   end
 
@@ -83,7 +83,7 @@ describe "FinderSpec" do
 
       context "for :multi" do
         it "should get one record by id" do
-          person    = klass.find_all_by_id([1])
+          person    = find_all(klass, :id => 1)
           hs_person = klass.hsfind_multi_by_id(1)
 
           expect(hs_person.size).to eql(1)
@@ -91,14 +91,14 @@ describe "FinderSpec" do
         end
 
         it "should get some records by ids" do
-          people    = klass.find_all_by_id([1, 2])
+          people    = find_all(klass, :id => [1, 2])
           hs_people = klass.hsfind_multi_by_id(1, 2)
 
           expect(hs_people).to eql(people)
         end
 
         it "should get empty array by unknown id" do
-          people    = klass.find_all_by_id([9])
+          people    = find_all(klass, :id => 9)
           hs_people = klass.hsfind_multi_by_id(9)
 
           expect(people).to be_empty
@@ -159,7 +159,7 @@ describe "FinderSpec" do
           end
 
           it "should find less value record" do
-            people    = klass.find_all_by_id([2])
+            people    = find_all(klass, :id => 2)
             hs_people = klass.hsfind_multi_by_id(3, :operator => "<")
 
             expect(hs_people).to eql(people)
@@ -172,7 +172,7 @@ describe "FinderSpec" do
 
         context "with each_limit option" do
           it "should find greater value records" do
-            people    = klass.find_all_by_id([1, 2, 3])
+            people    = find_all(klass, :id => [1, 2, 3])
             hs_people = klass.hsfind_multi_by_id(0, :operator => ">", :each_limit => 10)
 
             expect(hs_people).to eql(people)
@@ -225,7 +225,7 @@ describe "FinderSpec" do
       context "for :multi" do
         context "when use 1st sequence column" do
           it "should find records" do
-            people    = klass.find_all_by_age(36)
+            people    = find_all(klass, :age => 36)
             hs_people = klass.hsfind_multi_by_age_and_status(36, :each_limit => 10)
 
             expect(hs_people.size).to eql(2)
@@ -240,7 +240,7 @@ describe "FinderSpec" do
 
         context "when use all sequence columns" do
           it "should find records" do
-            people    = klass.find_all_by_age_and_status(36, false)
+            people    = find_all(klass, :age => 36, :status => false)
             # XXX: Cannot use `true/false`
             hs_people = klass.hsfind_multi_by_age_and_status([36, 0], :each_limit => 10)
 
@@ -249,7 +249,7 @@ describe "FinderSpec" do
           end
 
           it "should find records by multi condition" do
-            people    = [klass.find_all_by_age_and_status(36, false), klass.find_all_by_age_and_status(36, true)].flatten
+            people    = [find_all(klass, :age => 36, :status => false), find_all(klass, :age => 36, :status => true)].flatten
             # XXX: Cannot use `true/false`
             hs_people = klass.hsfind_multi_by_age_and_status([36, 0], [36, 1], :each_limit => 10)
 
