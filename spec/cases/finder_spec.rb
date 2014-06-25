@@ -269,6 +269,48 @@ describe "FinderSpec" do
       end
     end
 
+    describe "with active_record callbacks" do
+      context "for :single" do
+        it "should work after_find callback" do
+          hs_person = klass.hsfind_by_id(1)
+          expect(hs_person.born_year).to eql(Time.now.year - hs_person.age)
+          expect(hs_person.instance_variable_get(:@born_year)).to eql(hs_person.born_year)
+        end
+
+        it "should work after_initialize callback" do
+          hs_person = klass.hsfind_by_id(1)
+          expect(hs_person.family_name).to eql(hs_person.name.split(" ").last)
+          expect(hs_person.instance_variable_get(:@family_name)).to eql(hs_person.family_name)
+        end
+      end
+
+      context "for :multi" do
+        it "should work after_find callback" do
+          hs_people = klass.hsfind_multi_by_id(1, 2)
+
+          hs_person = hs_people[0]
+          expect(hs_person.born_year).to eql(Time.now.year - hs_person.age)
+          expect(hs_person.instance_variable_get(:@born_year)).to eql(hs_person.born_year)
+
+          hs_person = hs_people[1]
+          expect(hs_person.born_year).to eql(Time.now.year - hs_person.age)
+          expect(hs_person.instance_variable_get(:@born_year)).to eql(hs_person.born_year)
+        end
+
+        it "should work after_initialize callback" do
+          hs_people = klass.hsfind_multi_by_id(1, 2)
+
+          hs_person = hs_people[0]
+          expect(hs_person.family_name).to eql(hs_person.name.split(" ").last)
+          expect(hs_person.instance_variable_get(:@family_name)).to eql(hs_person.family_name)
+
+          hs_person = hs_people[1]
+          expect(hs_person.family_name).to eql(hs_person.name.split(" ").last)
+          expect(hs_person.instance_variable_get(:@family_name)).to eql(hs_person.family_name)
+        end
+      end
+    end
+
     describe "with connection" do
       before :each do
         ActiveRecord::Base.__send__(:hs_reconnect!)
