@@ -6,11 +6,16 @@ class Person < ActiveRecord::Base
 
   attr_reader :family_name, :born_year
 
-  def after_find
+  after_find :set_born_year
+  after_initialize :set_family_name
+
+  private
+
+  def set_born_year
     @born_year = Time.now.year - self.age
   end
 
-  def after_initialize
+  def set_family_name
     @family_name = self.name.split(" ").last
   end
 end
