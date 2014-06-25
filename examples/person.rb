@@ -14,7 +14,7 @@ class Person < ActiveRecord::Base
     end
   end
 
-  if active_record_version >= Gem::Version.new("4.0.0")
+  if active_record_version >= Gem::Version.new("3.0.0")
     after_find :set_born_year
     after_initialize :set_family_name
 
