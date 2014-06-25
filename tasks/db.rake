@@ -13,7 +13,7 @@ namespace :db do
       age    int(11)      DEFAULT NULL,
       status tinyint(1)   NOT NULL DEFAULT '1',
       PRIMARY KEY (id)
-    ].join(" "),
+    ],
     :hobbies => %W[
       id         int(11)          NOT NULL AUTO_INCREMENT,
       person_id  int(11)          NOT NULL,
@@ -21,7 +21,7 @@ namespace :db do
       created_at datetime DEFAULT NULL,
       updated_at datetime DEFAULT NULL,
       PRIMARY KEY (id)
-    ].join(" ")
+    ]
   }
 
   INDEXES = {
@@ -37,8 +37,8 @@ namespace :db do
         :columns => %W[person_id]
       },
       {
-        :name    => :index_hobbies_on_title,
-        :columns => %W[title],
+        :name    => :index_hobbies_on_person_id_and_title,
+        :columns => %W[person_id title],
         :unique  => true
       }
     ]
@@ -76,7 +76,7 @@ namespace :db do
   task :create_tables do
     DATABASES.each do |database|
       TABLES.each do |table, schema|
-        mysql "CREATE TABLE #{table} (#{schema}) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8", :database => database
+        mysql "CREATE TABLE #{table} (#{schema.join(" ")}) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8", :database => database
       end
 
       mysql "SHOW TABLES", :database => database
