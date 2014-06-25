@@ -1,4 +1,6 @@
 require 'active_record'
+require 'logger'
+require 'fileutils'
 
 ActiveRecord::Base.configurations = {
   "base" => {
@@ -21,9 +23,6 @@ ActiveRecord::Base.configurations = {
 }
 
 ActiveRecord::Base.establish_connection "base"
-
-require 'logger'
-require 'fileutils'
 
 log_dir = File.join(File.dirname(File.expand_path(__FILE__)), "..", "log" )
 log_file = File.join(log_dir, "test.log")
