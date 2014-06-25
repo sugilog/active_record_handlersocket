@@ -1,7 +1,6 @@
 language: ruby
 before_install:
-  - ruby travis_prepare.rb
-  - gem install handlersocket -- --with-opt-include=/usr/local/include/handlersocket
+  - rake travis:build
 before_script:
   - rake db:prepare
 rvm:
