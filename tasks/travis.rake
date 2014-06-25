@@ -10,6 +10,7 @@ namespace :travis do
         make_handler_socket
         update_mysql_config
         add_handlersocket_for_mysql
+        install_handlersocket_gem
       ].each do |task|
         Rake::Task["travis:" + task].invoke
       end
@@ -28,7 +29,7 @@ namespace :travis do
 
   task :make_handler_socket do
     execute "cd #{handlersocket_plugin_dir}; ./autogen.sh"
-    execute "cd #{handlersocket_plugin_dir}; ./configure --with-mysql-source=#{mysql_source} --with-mysql-bindir=#{mysql_bin}"
+    execute "cd #{handlersocket_plugin_dir}; ./configure --with-mysql-source=#{mysql_source} --with-mysql-bindir=#{mysql_bin} --prefix=#{configure_prefix}"
     execute "cd #{handlersocket_plugin_dir}; make"
     execute "cd #{handlersocket_plugin_dir}; sudo make install"
   end
@@ -49,6 +50,10 @@ namespace :travis do
     execute %Q|mysql -u root -e "SHOW PLUGINS"|
   end
 
+  task :install_handlersocket_gem do
+    execute "gem install handlersocket -- --with-opt-include=#{configure_prefix}/include/handlersocket"
+  end
+
   def execute(command)
     STDOUT.puts ""
     command = command + " 2>&1"
@@ -59,6 +64,10 @@ namespace :travis do
 
   def handlersocket_plugin_installed?
     `mysql -e "SHOW PLUGINS" | grep handlersocket | wc -l`.chomp.to_i > 0
+  end
+
+  def configure_prefix
+    "/usr/local"
   end
 
   def base_dir
