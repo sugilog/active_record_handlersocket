@@ -6,8 +6,27 @@ class Person < ActiveRecord::Base
 
   attr_reader :family_name, :born_year
 
-  after_find :set_born_year
-  after_initialize :set_family_name
+  def self.active_record_version
+    if ActiveRecord.respond_to?(:version)
+      ActiveRecord.version
+    else
+      Gem::Version.new(ActiveRecord::VERSION::STRING)
+    end
+  end
+
+  if active_record_version >= Gem::Version.new("4.0.0")
+    after_find :set_born_year
+    after_initialize :set_family_name
+
+  else
+    def after_find
+      set_born_year
+    end
+
+    def after_initialize
+      set_family_name
+    end
+  end
 
   private
 
