@@ -71,7 +71,8 @@ namespace :travis do
   end
 
   def base_dir
-    dir = File.dirname __FILE__
+    task_dir = File.dirname __FILE__
+    dir = File.dirname task_dir
     File.expand_path dir
   end
 
