@@ -1,4 +1,4 @@
-RAILS_ENV = "development"
+RAILS_ENV ||= "development"
 
 %W[
   configuration
