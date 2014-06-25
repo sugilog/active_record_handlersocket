@@ -18,7 +18,16 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "handlersocket", "~> 0.0.2"
 
-  if RUBY_VERSION >= "2.0.0"
+  case
+  when RUBY_VERSION < "1.9.0"
+    s.add_runtime_dependency "activerecord", "~> 2.3.12"
+
+    s.add_development_dependency 'rake',             "~> 0.9.2.2"
+    s.add_development_dependency "mysql2",           "0.2.18"
+    s.add_development_dependency "rspec",            "~> 2.11.0"
+    s.add_development_dependency "factory_girl",     "2.3.2"
+    s.add_development_dependency "database_cleaner", "0.9.1"
+  when RUBY_VERSION < "2.0.0"
     s.add_runtime_dependency "activerecord", "~> 3.2.18"
 
     s.add_development_dependency "rake"
@@ -27,12 +36,12 @@ Gem::Specification.new do |s|
     s.add_development_dependency "factory_girl"
     s.add_development_dependency "database_cleaner"
   else
-    s.add_runtime_dependency "activerecord", "~> 2.3.12"
+    s.add_runtime_dependency "activerecord"
 
-    s.add_development_dependency 'rake',             "~> 0.9.2.2"
-    s.add_development_dependency "mysql2",           "0.2.18"
-    s.add_development_dependency "rspec",            "~> 2.11.0"
-    s.add_development_dependency "factory_girl",     "2.3.2"
-    s.add_development_dependency "database_cleaner", "0.9.1"
+    s.add_development_dependency "rake"
+    s.add_development_dependency "mysql2"
+    s.add_development_dependency "rspec"
+    s.add_development_dependency "factory_girl"
+    s.add_development_dependency "database_cleaner"
   end
 end
