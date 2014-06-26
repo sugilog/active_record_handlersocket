@@ -31,10 +31,10 @@ class Person < ActiveRecord::Base
   private
 
   def set_born_year
-    @born_year = Time.now.year - self.age
+    @born_year = Time.now.year - self.age if self.age
   end
 
   def set_family_name
-    @family_name = self.name.split(" ").last
+    @family_name = self.name.split(" ").last if self.name
   end
 end
