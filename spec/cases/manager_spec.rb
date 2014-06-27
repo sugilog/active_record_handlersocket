@@ -93,6 +93,66 @@ describe "ManagerSpec" do
       klass.__send__(:handlersocket, "test_id", "PRIMARY")
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(klass.column_names)
     end
+
+    it "can call alias 'hs_reader'" do
+      klass.__send__(:hs_reader, "test_id", "PRIMARY")
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(klass.column_names)
+    end
+  end
+
+  describe "hs_writer" do
+    before :each do
+      @warn_log = StringIO.new
+      $stderr = @warn_log
+    end
+
+    after :each do
+      $stderr = STDERR
+      @warn_log = nil
+    end
+
+    it "should not overwrite by another class" do
+      expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(klass.__send__(:hs_index_key, "writer"))).to be
+      expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_key, "writer"))).to be
+    end
+
+    it "should increment id by each set" do
+      initial_count = klass.__send__(:hs_index_count_cache)
+      klass.__send__(:hs_writer)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:id]).to eql(initial_count + 1)
+      another_klass.__send__(:hs_writer)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "writer")][:id]).to eql(initial_count + 2)
+      klass.__send__(:hs_writer)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:id]).to eql(initial_count + 3)
+    end
+
+    it "should warn key updating" do
+      klass.__send__(:hs_writer)
+
+      @warn_log.rewind
+      warned = @warn_log.read.chomp
+
+      expect(warned).to match(/#{klass.name} handlersocket: writer was updated/)
+    end
+
+    it "should be allow deprecated argument" do
+      klass.__send__(:hs_writer, ["id"])
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:fields]).to eql(["id"])
+    end
+
+    it "should warn deprecated argument" do
+      klass.__send__(:hs_writer, ["id"])
+
+      @warn_log.rewind
+      warned = @warn_log.read.chomp
+
+      expect(warned).to match(/^DEPRECATION WARNING/)
+    end
+
+    it "should be all columns for columns is not specified" do
+      klass.__send__(:hs_writer)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:fields]).to eql(klass.column_names)
+    end
   end
 
   describe "hs_index_key" do

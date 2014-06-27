@@ -1,8 +1,9 @@
 require 'active_record_handlersocket'
 
 class Person < ActiveRecord::Base
-  handlersocket :id, "PRIMARY"
-  handlersocket :age_and_status, "index_people_on_age_and_status", :columns => %W[id name age status]
+  hs_reader :id, "PRIMARY"
+  hs_reader :age_and_status, "index_people_on_age_and_status", :columns => %W[id name age status]
+  hs_writer
 
   attr_reader :family_name, :born_year
 

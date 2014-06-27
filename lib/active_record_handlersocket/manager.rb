@@ -7,6 +7,14 @@ module ActiveRecordHandlerSocket
       @@hs_indexes = {}
       @@hs_index_count_cache = 0
 
+      def hs_writer(options = {})
+        handlersocket "writer", "PRIMARY", options
+      end
+
+      def hs_reader(*args)
+        handlersocket *args
+      end
+
       def handlersocket(*args)
         options = args.extract_options!
         key     = args[0]
@@ -21,7 +29,7 @@ module ActiveRecordHandlerSocket
           columns = column_names
         end
 
-        index_key = hs_index_key(key)
+        index_key = hs_index_key key
 
         if @@hs_indexes.has_key?(index_key)
           warn "#{self.name} handlersocket: #{key} was updated"
@@ -38,7 +46,7 @@ module ActiveRecordHandlerSocket
       end
 
       def hs_index_key(key)
-        [self.name, key].join(":")
+        [self.name, key].join ":"
       end
 
       def hs_fetch_key(index_key)
