@@ -2,6 +2,7 @@ active_record_handlersocket
 ===========================
 
 [![Build Status](https://travis-ci.org/sugilog/active_record_handlersocket.svg?branch=master)](https://travis-ci.org/sugilog/active_record_handlersocket)
+[![Gem Version](https://badge.fury.io/rb/active_record_handlersocket.svg)](http://badge.fury.io/rb/active_record_handlersocket)
 
 HandlerSocket for ActiveRecord; depends handlersocket gem https://github.com/miyucy/handlersocket
 
