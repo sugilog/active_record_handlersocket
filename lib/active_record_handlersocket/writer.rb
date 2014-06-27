@@ -48,7 +48,7 @@ module ActiveRecordHandlerSocket
     module PrivateMethods
       def hs_current_time_from_proper_timezone
         time = default_timezone == :utc ? Time.now.utc : Time.now
-        time.to_s
+        time.to_s(:db)
       end
     end
   end
