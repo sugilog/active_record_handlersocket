@@ -1,6 +1,4 @@
 module ActiveRecordHandlerSocket
-  class CannotConnectError < StandardError; end
-
   module Finder
     def method_missing(method_name, *args, &block)
       case method_name.to_s
@@ -43,36 +41,6 @@ module ActiveRecordHandlerSocket
     end
 
     module PrivateMethods
-      def hs_open_index(index_key)
-        setting = hs_fetch_key(index_key)
-
-        if setting[:opened]
-          return
-        end
-
-        config   = configurations["#{RAILS_ENV}_hs_read"].symbolize_keys
-
-        id       = setting[:id]
-        database = config[:database]
-        table    = table_name
-        index    = setting[:index]
-        fields   = setting[:fields].join(",")
-
-        signal = hs_read_connection.open_index(id, database, table, index, fields)
-
-        case
-        when signal == 0
-          setting[:opened] = true
-        when signal > 0
-          error = hs_read_connection.error
-          raise ArgumentError, "invalid setting given: #{error}"
-        else
-          hs_reset_opened_indexes
-          error = hs_read_connection.error
-          raise ActiveRecordHandlerSocket::CannotConnectError, "connection lost: #{error}"
-        end
-      end
-
       def hs_instantiate(index_key, result_on_single)
         signal, result = result_on_single
 

@@ -4,6 +4,7 @@ require 'handlersocket'
 %W[
   manager
   finder 
+  writer
   connection
   active_record_handler_socket
   base

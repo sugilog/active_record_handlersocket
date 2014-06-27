@@ -15,6 +15,11 @@ ActiveRecord::Base.configurations = {
     :port     => "9998",
     :database => "active_record_handler_socket"
   },
+  "development_hs_write" => {
+    :host     => "localhost",
+    :port     => "9998",
+    :database => "active_record_handler_socket"
+  },
   "benchmark" => {
     :adapter  => "mysql2",
     :host     => "localhost",
@@ -23,6 +28,11 @@ ActiveRecord::Base.configurations = {
     :encoding => "utf8"
   },
   "benchmark_hs_read" => {
+    :host     => "localhost",
+    :port     => "9998",
+    :database => "active_record_handler_socket_benchmark"
+  },
+  "benchmark_hs_write" => {
     :host     => "localhost",
     :port     => "9998",
     :database => "active_record_handler_socket_benchmark"

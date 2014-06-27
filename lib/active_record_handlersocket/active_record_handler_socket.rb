@@ -1,8 +1,11 @@
 module ActiveRecordHandlerSocket
+  class CannotConnectError < StandardError; end
+
   def self.included(c)
     [
       Manager,
       Finder,
+      Writer,
       Connection
     ].each do |_module|
       c.extend _module

@@ -48,7 +48,7 @@ module ActiveRecordHandlerSocket
           index_key => {
             :id     => hs_index_count,
             :index  => index,
-            :fields => columns,
+            :fields => columns.map(&:to_s),
             :opened => false
           }
         )

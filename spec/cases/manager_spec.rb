@@ -40,16 +40,6 @@ describe "ManagerSpec" do
   end
 
   describe "handlersocket" do
-    before :each do
-      @warn_log = StringIO.new
-      $stderr = @warn_log
-    end
-
-    after :each do
-      $stderr = STDERR
-      @warn_log = nil
-    end
-
     it "should not overwrite by another class" do
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(klass.__send__(:hs_index_key, "id"))).to be
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_key, "id"))).to be
@@ -69,8 +59,8 @@ describe "ManagerSpec" do
       klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
       klass.__send__(:handlersocket, "test_id", "PRIMARY", :columns => ["id"])
 
-      @warn_log.rewind
-      warned = @warn_log.read.chomp
+      warning_log.rewind
+      warned = warning_log.read.chomp
 
       expect(warned).to match(/#{klass.name} handlersocket: test_id was updated/)
     end
@@ -83,8 +73,8 @@ describe "ManagerSpec" do
     it "should warn deprecated argument" do
       klass.__send__(:handlersocket, "test_id", "PRIMARY", ["id"])
 
-      @warn_log.rewind
-      warned = @warn_log.read.chomp
+      warning_log.rewind
+      warned = warning_log.read.chomp
 
       expect(warned).to match(/^DEPRECATION WARNING/)
     end
@@ -94,6 +84,11 @@ describe "ManagerSpec" do
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(klass.column_names)
     end
 
+    it "should be columns to string" do
+      klass.__send__(:handlersocket, "test_id", :columns => [:name, :age])
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(["name", "age"])
+    end
+
     it "can call alias 'hs_reader'" do
       klass.__send__(:hs_reader, "test_id", "PRIMARY")
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "test_id")][:fields]).to eql(klass.column_names)
@@ -101,16 +96,6 @@ describe "ManagerSpec" do
   end
 
   describe "hs_writer" do
-    before :each do
-      @warn_log = StringIO.new
-      $stderr = @warn_log
-    end
-
-    after :each do
-      $stderr = STDERR
-      @warn_log = nil
-    end
-
     it "should not overwrite by another class" do
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(klass.__send__(:hs_index_writer_key))).to be
       expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_writer_key))).to be
@@ -129,8 +114,8 @@ describe "ManagerSpec" do
     it "should warn key updating" do
       klass.__send__(:hs_writer)
 
-      @warn_log.rewind
-      warned = @warn_log.read.chomp
+      warning_log.rewind
+      warned = warning_log.read.chomp
 
       expect(warned).to match(/#{klass.name} handlersocket: __writer__ was updated/)
     end
@@ -144,6 +129,11 @@ describe "ManagerSpec" do
     it "should be all columns without primary key for columns is not specified" do
       klass.__send__(:hs_writer)
       expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:fields]).to eql(klass.column_names - [klass.primary_key])
+    end
+
+    it "should be columns to string" do
+      klass.__send__(:hs_writer, :columns => [:name, :age])
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:fields]).to eql(["name", "age"])
     end
   end
 
