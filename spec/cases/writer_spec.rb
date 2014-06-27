@@ -82,7 +82,7 @@ describe "WriterSpec" do
     it "should available and countup with auto increment" do
       id = nil
 
-      auto_increment = klass.connection.select(<<-SQL).to_a.first["AUTO_INCREMENT"]
+      auto_increment = klass.connection.__send__(:select, <<-SQL).to_a.first["AUTO_INCREMENT"]
 SELECT AUTO_INCREMENT
 FROM   INFORMATION_SCHEMA.TABLES
 WHERE  TABLE_SCHEMA = '#{klass.configurations[RAILS_ENV][:database]}'
