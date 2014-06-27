@@ -37,7 +37,6 @@ describe "WriterSpec" do
       it "should callable but having nil" do
         expect{
           id = klass.hscreate :name => "Test", :age => 24, :status => nil
-          p klass.find_by_id id
         }.to raise_error(TypeError)
       end
     end
