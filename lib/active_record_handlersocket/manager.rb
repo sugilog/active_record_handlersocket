@@ -7,6 +7,8 @@ module ActiveRecordHandlerSocket
       @@hs_indexes = {}
       @@hs_index_count_cache = 0
 
+      WRITER_KEY = "__writer__"
+
       def hs_writer(options = {})
         options[:columns] ||= column_names
         options[:columns] = options[:columns] - [primary_key]
@@ -15,7 +17,7 @@ module ActiveRecordHandlerSocket
           raise ArgumentError, "columns should assign without :#{primary_key}"
         end
 
-        handlersocket "writer", "PRIMARY", options
+        handlersocket WRITER_KEY, "PRIMARY", options
       end
 
       def hs_reader(*args)
@@ -54,6 +56,10 @@ module ActiveRecordHandlerSocket
 
       def hs_index_key(key)
         [self.name, key].join ":"
+      end
+
+      def hs_index_writer_key
+        hs_index_key WRITER_KEY
       end
 
       def hs_fetch_key(index_key)

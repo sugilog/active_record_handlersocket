@@ -112,18 +112,18 @@ describe "ManagerSpec" do
     end
 
     it "should not overwrite by another class" do
-      expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(klass.__send__(:hs_index_key, "writer"))).to be
-      expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_key, "writer"))).to be
+      expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(klass.__send__(:hs_index_writer_key))).to be
+      expect(ActiveRecord::Base.__send__(:hs_indexes).has_key?(another_klass.__send__(:hs_index_writer_key))).to be
     end
 
     it "should increment id by each set" do
       initial_count = klass.__send__(:hs_index_count_cache)
       klass.__send__(:hs_writer)
-      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:id]).to eql(initial_count + 1)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:id]).to eql(initial_count + 1)
       another_klass.__send__(:hs_writer)
-      expect(ActiveRecord::Base.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "writer")][:id]).to eql(initial_count + 2)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[another_klass.__send__(:hs_index_writer_key)][:id]).to eql(initial_count + 2)
       klass.__send__(:hs_writer)
-      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:id]).to eql(initial_count + 3)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:id]).to eql(initial_count + 3)
     end
 
     it "should warn key updating" do
@@ -132,7 +132,7 @@ describe "ManagerSpec" do
       @warn_log.rewind
       warned = @warn_log.read.chomp
 
-      expect(warned).to match(/#{klass.name} handlersocket: writer was updated/)
+      expect(warned).to match(/#{klass.name} handlersocket: __writer__ was updated/)
     end
 
     it "should be not allow deprecated argument" do
@@ -143,7 +143,7 @@ describe "ManagerSpec" do
 
     it "should be all columns without primary key for columns is not specified" do
       klass.__send__(:hs_writer)
-      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:fields]).to eql(klass.column_names - [klass.primary_key])
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:fields]).to eql(klass.column_names - [klass.primary_key])
     end
   end
 
@@ -155,8 +155,21 @@ describe "ManagerSpec" do
     end
 
     it "should concat class name and key name" do
-      expect(klass.__send__(:hs_index_key, "bar")).to eql(klass.__send__(:hs_index_key, "bar"))
-      expect(another_klass.__send__(:hs_index_key, "baz")).to eql(another_klass.__send__(:hs_index_key, "baz"))
+      expect(klass.__send__(:hs_index_key, "bar")).to eql("#{klass.name}:bar")
+      expect(another_klass.__send__(:hs_index_key, "baz")).to eql("#{another_klass.name}:baz")
+    end
+  end
+
+  describe "hs_index_writer_key" do
+    it "should be private method" do
+      expect{
+        klass.hs_index_writer_key
+      }.to raise_error(NoMethodError)
+    end
+
+    it "should concat class name and key name" do
+      expect(klass.__send__(:hs_index_writer_key)).to eql("#{klass.name}:__writer__")
+      expect(another_klass.__send__(:hs_index_writer_key)).to eql("#{another_klass.name}:__writer__")
     end
   end
 
