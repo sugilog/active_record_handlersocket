@@ -14,8 +14,11 @@ require File.join(spec_dir, "helpers", "warning_helper")
 require 'factory_girl'
 require 'database_cleaner'
 
-require 'coveralls'
-Coveralls.wear!
+begin
+  require 'coveralls'
+  Coveralls.wear!
+rescue LoadError
+end
 
 RSpec.configure do |config|
   config.mock_framework = :rspec
