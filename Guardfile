@@ -1,14 +1,14 @@
 #!:/usr/bin/env ruby
 
-guard :rspec, :cmd => "bundle exec rspec" do
-  watch %r{^spec/cases/.+_spec\.rb$}
-
-  callback = lambda do
-    "spec"
+guard :rspec, :cmd => "bundle exec rspec", :failed_mode => :none do
+  watch %r{^spec/cases/.+_spec\.rb$} do |match|
+    "#{match[0]}"
   end
 
-  watch %r{^spec/(?:spec_helper|configuration).rb$}, &callback
-  watch %r{^spec/(?:factories|helpers|mock)/.+\.rb$}, &callback
-  watch %r{^lib/active_record_handlersocket.rb$}, &callback
-  watch %r{^lib/active_record_handlersocket/.*\.rb$}, &callback
+  action = -> { "spec" }
+
+  watch %r{^spec/(?:spec_helper|configuration).rb$} , &action
+  watch %r{^spec/(?:factories|helpers|mock)/.+\.rb$}, &action
+  watch %r{^lib/active_record_handlersocket.rb$}    , &action
+  watch %r{^lib/active_record_handlersocket/.*\.rb$}, &action
 end
