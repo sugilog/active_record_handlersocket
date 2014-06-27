@@ -1,5 +1,6 @@
 module ActiveRecordHandlerSocket
   class CannotConnectError < StandardError; end
+  class ConnectionLost     < StandardError; end
 
   def self.included(c)
     [

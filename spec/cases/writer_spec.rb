@@ -258,7 +258,7 @@ AND    TABLE_NAME = '#{klass.table_name}'
       it "should raise error for connection loat" do
         expect{
           klass.__send__ :hs_write_result, [-1, "write: closed"]
-        }.to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+        }.to raise_error(ActiveRecordHandlerSocket::ConnectionLost)
       end
 
       it "should all indexes closed" do

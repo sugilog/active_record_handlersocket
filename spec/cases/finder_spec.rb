@@ -378,7 +378,7 @@ describe "FinderSpec" do
 
         expect{
           klass.__send__(:hs_instantiate, klass.__send__(:hs_index_key, "id"), [-1, "connection lost"])
-        }.to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+        }.to raise_error(ActiveRecordHandlerSocket::ConnectionLost)
 
         expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
         expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).not_to be

@@ -57,7 +57,7 @@ module ActiveRecordHandlerSocket
           raise ArgumentError, "invalid argument given: #{result}"
         else
           hs_reset_opened_indexes
-          raise ActiveRecordHandlerSocket::CannotConnectError, result
+          raise ConnectionLost, result
         end
       end
     end
