@@ -166,6 +166,15 @@ AND    TABLE_NAME = '#{klass.table_name}'
     end
 
     context "when timestamp field is nil" do
+      before :each do
+        @default = klass.default_timezone
+        klass.default_timezone = :local
+      end
+
+      after :each do
+        klass.default_timezone = @default
+      end
+
       it "should add timestamp" do
         t = Time.now
         values = klass.__send__ :hs_to_a_write_values, {}, ["updated_at", "created_at"]
