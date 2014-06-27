@@ -135,23 +135,15 @@ describe "ManagerSpec" do
       expect(warned).to match(/#{klass.name} handlersocket: writer was updated/)
     end
 
-    it "should be allow deprecated argument" do
-      klass.__send__(:hs_writer, ["id"])
-      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:fields]).to eql(["id"])
+    it "should be not allow deprecated argument" do
+      expect{
+        klass.__send__(:hs_writer, ["id"])
+      }.to raise_error(TypeError)
     end
 
-    it "should warn deprecated argument" do
-      klass.__send__(:hs_writer, ["id"])
-
-      @warn_log.rewind
-      warned = @warn_log.read.chomp
-
-      expect(warned).to match(/^DEPRECATION WARNING/)
-    end
-
-    it "should be all columns for columns is not specified" do
+    it "should be all columns without primary key for columns is not specified" do
       klass.__send__(:hs_writer)
-      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:fields]).to eql(klass.column_names)
+      expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "writer")][:fields]).to eql(klass.column_names - [klass.primary_key])
     end
   end
 
