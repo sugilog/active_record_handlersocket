@@ -9,3 +9,5 @@ if RUBY_VERSION >= "1.9.3"
   gem 'guard',       '~> 2.6.1'
   gem 'guard-rspec', '~> 4.2.10'
 end
+
+gem 'coveralls', require: false
