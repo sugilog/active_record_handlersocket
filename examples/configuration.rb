@@ -17,7 +17,7 @@ ActiveRecord::Base.configurations = {
   },
   "development_hs_write" => {
     :host     => "localhost",
-    :port     => "9998",
+    :port     => "9999",
     :database => "active_record_handler_socket"
   },
   "benchmark" => {

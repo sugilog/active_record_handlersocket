@@ -46,14 +46,7 @@ module ActiveRecordHandlerSocket
           # return PRIMARY KEY value
           result.first.first.to_i
         when signal > 0
-          message =
-            case result.to_i
-            when 121
-              "duplicate entry"
-            else
-              "unknown: #{result}"
-            end
-
+          message = result == "121" ? "duplicate entry" : result
           raise ArgumentError, "invalid argument given: #{message}"
         else
           hs_reset_opened_indexes
