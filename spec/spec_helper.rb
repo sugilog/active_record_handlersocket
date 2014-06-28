@@ -14,12 +14,6 @@ require File.join(spec_dir, "helpers", "warning_helper")
 require 'factory_girl'
 require 'database_cleaner'
 
-begin
-  require 'coveralls'
-  Coveralls.wear!
-rescue LoadError
-end
-
 RSpec.configure do |config|
   config.mock_framework = :rspec
   config.color = true
@@ -46,5 +40,4 @@ RSpec.configure do |config|
     reset_warning_log
     DatabaseCleaner.clean
   end
-
 end

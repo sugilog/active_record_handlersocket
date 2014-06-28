@@ -3,7 +3,6 @@ active_record_handlersocket
 
 [![Build Status](https://travis-ci.org/sugilog/active_record_handlersocket.svg?branch=master)](https://travis-ci.org/sugilog/active_record_handlersocket)
 [![Gem Version](https://badge.fury.io/rb/active_record_handlersocket.svg)](http://badge.fury.io/rb/active_record_handlersocket)
-[![Coverage Status](https://coveralls.io/repos/sugilog/active_record_handlersocket/badge.png)](https://coveralls.io/r/sugilog/active_record_handlersocket)
 [![Code Climate](https://codeclimate.com/github/sugilog/active_record_handlersocket.png)](https://codeclimate.com/github/sugilog/active_record_handlersocket)
 
 HandlerSocket for ActiveRecord; depends handlersocket gem https://github.com/miyucy/handlersocket
