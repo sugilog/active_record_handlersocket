@@ -5,7 +5,6 @@ module ActiveRecordHandlerSocket
 
   def self.included(c)
     [
-      Manager,
       Finder,
       Writer,
     ].each do |_module|
@@ -15,7 +14,7 @@ module ActiveRecordHandlerSocket
     end
 
     connection = Connection.new c.logger
-    c.__send__ :cattr_reader, :hs_connection
-    c.class_variable_set :@@hs_connection, connection
+    c.__send__ :cattr_accessor, :hs_connection
+    c.hs_connection = connection
   end
 end

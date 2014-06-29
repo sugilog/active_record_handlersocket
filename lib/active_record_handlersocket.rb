@@ -2,7 +2,6 @@ require 'active_record'
 require 'handlersocket'
 
 %W[
-  manager
   finder 
   writer
   connection

@@ -22,16 +22,14 @@ describe ActiveRecordHandlerSocket::Connection do
   end
 
   def add_index_setting(_connection)
-    index_key   = _connection.index_key model_class, :id
-    _connection.add_index_setting model_class, index_key, "PRIMARY"
+    index_key = _connection.add_index_setting model_class, :id, "PRIMARY"
     _connection.open_index model_class, index_key
 
-    index_key   = _connection.index_writer_key model_class
-    _connection.add_index_setting model_class, index_key, "PRIMARY"
+    key = 
+    index_key = _connection.add_index_setting model_class, ActiveRecordHandlerSocket::Connection::WRITER_KEY, "PRIMARY", :write => true
     _connection.open_index model_class, index_key
 
-    index_key   = _connection.index_key another_model_class, :id
-    _connection.add_index_setting another_model_class, index_key, "PRIMARY"
+    index_key = _connection.add_index_setting another_model_class, :id, "PRIMARY"
     _connection.open_index another_model_class, index_key
   end
 
@@ -43,27 +41,27 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it "should return connection instance" do
-          be_kind_of klass
+          expect(subject).to be_kind_of(klass)
         end
       end
 
       describe ".logger" do
         subject do
-          conneciton.logger
+          connection.logger
         end
 
         it "should same given logger" do
-          eql ActiveRecord::Base.logger
+          expect(subject).to eql(ActiveRecord::Base.logger)
         end
       end
 
       describe ".model_class" do
         subject do
-          conneciton.model_class
+          connection.model_class
         end
 
         it "should same given logger" do
-          eql ActiveRecord::Base
+          expect(subject).to eql(ActiveRecord::Base)
         end
       end
 
@@ -77,8 +75,8 @@ describe ActiveRecordHandlerSocket::Connection do
             connection.connections[:read]
           end
 
-          it "should set read conneciton" do
-            be_kind_of HandlerSocket
+          it "should set read connection" do
+            expect(subject).to be_kind_of(HandlerSocket)
           end
         end
 
@@ -87,8 +85,8 @@ describe ActiveRecordHandlerSocket::Connection do
             connection.connections[:write]
           end
 
-          it "should set write conneciton" do
-            be_kind_of HandlerSocket
+          it "should set write connection" do
+            expect(subject).to be_kind_of(HandlerSocket)
           end
         end
       end
@@ -99,8 +97,8 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it "should set blank hash" do
-          be_blank
-          be_kind_of Hash
+          expect(subject).to be_blank
+          expect(subject).to be_kind_of(Hash)
         end
       end
 
@@ -110,7 +108,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it "should set 0" do
-          eql 0
+          expect(subject).to eql(0)
         end
       end
     end
@@ -122,11 +120,11 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".model_class" do
         subject do
-          @conneciton.model_class
+          @connection.model_class
         end
 
         it "should same given logger" do
-          eql model_class
+          expect(subject).to eql(model_class)
         end
       end
     end
@@ -144,27 +142,27 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it "should return connection instance" do
-          be_kind_of klass
+          expect(subject).to be_kind_of(klass)
         end
       end
 
       describe ".logger" do
         subject do
-          @conneciton.logger
+          @connection.logger
         end
 
         it "should same given logger" do
-          eql ActiveRecord::Base.logger
+          expect(subject).to eql(ActiveRecord::Base.logger)
         end
       end
 
       describe ".model_class" do
         subject do
-          @conneciton.model_class
+          @connection.model_class
         end
 
         it "should same given logger" do
-          eql ActiveRecord::Base
+          expect(subject).to eql(ActiveRecord::Base)
         end
       end
 
@@ -178,8 +176,8 @@ describe ActiveRecordHandlerSocket::Connection do
             @connection.connections[:read]
           end
 
-          it "should set read conneciton" do
-            be_nil
+          it "should set read connection" do
+            expect(subject).to be_nil
           end
         end
 
@@ -188,8 +186,8 @@ describe ActiveRecordHandlerSocket::Connection do
             @connection.connections[:write]
           end
 
-          it "should set write conneciton" do
-            be_nil
+          it "should set write connection" do
+            expect(subject).to be_nil
           end
         end
       end
@@ -200,8 +198,8 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it "should set blank hash" do
-          be_blank
-          be_kind_of Hash
+          expect(subject).to be_blank
+          expect(subject).to be_kind_of(Hash)
         end
       end
 
@@ -211,7 +209,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it "should set 0" do
-          eql 0
+          expect(subject).to eql(0)
         end
       end
     end
@@ -223,11 +221,11 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".model_class" do
         subject do
-          @conneciton.model_class
+          @connection.model_class
         end
 
         it "should same given logger" do
-          eql model_class
+          expect(subject).to eql(model_class)
         end
       end
     end
@@ -244,7 +242,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should not have connections" do
-        be_nil
+        expect(subject).to be_nil
       end
     end
 
@@ -254,7 +252,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should not have connections" do
-        be_nil
+        expect(subject).to be_nil
       end
     end
 
@@ -264,23 +262,23 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       subject do
-        @connection.connections[:read]
+        connection.read_connection
       end
 
       it "should have instance" do
-        be_kind_of HandlerSocket
+        expect(subject).to be_kind_of(HandlerSocket)
       end
 
       describe ":@current_config" do
         subject do
-          @connection.connections[:read].instance_variable_get(:@_current_config)
+          connection.read_connection.instance_variable_get(:@_current_config)
         end
 
         it "should have current_config" do
-          config = @connection.connection_config :read
+          config = connection.connection_config :read
           config = config.slice :host, :port
 
-          eql config
+          expect(subject).to eql(config)
         end
       end
     end
@@ -290,35 +288,35 @@ describe ActiveRecordHandlerSocket::Connection do
         connection.establish_connection :write
       end
 
-      subject do
-        @connection.connections[:write]
-      end
+      describe "object" do
+        subject do
+          connection.write_connection
+        end
 
-      it "should have instance" do
-        be_kind_of HandlerSocket
+        it "should have instance" do
+          expect(subject).to be_kind_of(HandlerSocket)
+        end
       end
 
       describe ":@current_config" do
         subject do
-          @connection.connections[:write].instance_variable_get(:@_current_config)
+          connection.write_connection.instance_variable_get(:@_current_config)
         end
 
         it "should have current_config" do
-          config = @connection.connection_config :write
+          config = connection.connection_config :write
           config = config.slice :host, :port
 
-          eql config
+          expect(subject).to eql(config)
         end
       end
     end
 
     context "with unknown" do
-      subject do
-        connection.establish_connection :write
-      end
-
       it do
-        raise_error ArgumentError
+        expect{
+          connection.establish_connection :unknown
+        }.to raise_error(ArgumentError)
       end
     end
   end
@@ -329,7 +327,7 @@ describe ActiveRecordHandlerSocket::Connection do
     end
 
     it "should return handlersocket" do
-      be_kind_of HandlerSocket
+      expect(subject).to be_kind_of(HandlerSocket)
     end
   end
 
@@ -339,7 +337,7 @@ describe ActiveRecordHandlerSocket::Connection do
     end
 
     it "should return handlersocket" do
-      be_kind_of HandlerSocket
+      expect(subject).to be_kind_of(HandlerSocket)
     end
   end
 
@@ -358,12 +356,14 @@ describe ActiveRecordHandlerSocket::Connection do
     end
 
     it "should return true" do
-      be
+      expect(subject).to be
     end
 
     context "then find" do
       before :each do
+        FactoryGirl.create(:bob)
         connection.reconnect!
+        stub_object model_class, :hs_connection,  connection
       end
 
       subject do
@@ -371,13 +371,14 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should found" do
-        be_kind_of model_class
+        expect(subject).to be_kind_of(model_class)
       end
     end
 
     context "then create" do
       before :each do
         connection.reconnect!
+        stub_object model_class, :hs_connection, connection
       end
 
       subject do
@@ -386,7 +387,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should created" do
-        be_kind_of model_class
+        expect(subject).to be_kind_of(model_class)
       end
     end
 
@@ -402,7 +403,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should setting reset" do
-        be_falsy
+        expect(subject).to be_falsy
       end
     end
 
@@ -418,7 +419,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should setting reset" do
-        be_falsy
+        expect(subject).to be_falsy
       end
     end
   end
@@ -434,7 +435,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should return true" do
-        be
+        expect(subject).to be
       end
     end
 
@@ -448,7 +449,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should return false" do
-        be_falsy
+        expect(subject).to be_falsy
       end
     end
 
@@ -463,7 +464,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should return false" do
-        be_falsy
+        expect(subject).to be_falsy
       end
     end
   end
@@ -480,7 +481,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should just return" do
-        be_nil
+        expect(subject).to be_nil
       end
     end
 
@@ -496,7 +497,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be
+          expect(subject).to be
         end
       end
 
@@ -508,44 +509,24 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
 
       describe "marked index setting opened" do
-        subject do
+        before :each do
           index_key = connection.index_key model_class, :id
           connection.open_index model_class, index_key
+        end
+
+        subject do
+          index_key = connection.index_key model_class, :id
           setting = connection.fetch index_key
           setting[:opened]
         end
 
         it do
-          be_falsy
-        end
-      end
-
-      describe "write connection is not active" do
-        subject do
-          index_key = connection.index_key model_class, :id
-          connection.open_index model_class, index_key
-          connection.write_connection.active?
-        end
-
-        it do
-          be
-        end
-      end
-
-      describe "read connection is active" do
-        subject do
-          index_key = connection.index_key model_class, :id
-          connection.open_index model_class, index_key
-          connection.read_connection.active?
-        end
-
-        it do
-          be
+          expect(subject).to be
         end
       end
     end
@@ -562,19 +543,19 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be
+          expect(subject).to be
         end
       end
 
       describe "before opened" do
         subject do
           index_key = connection.index_writer_key model_class
-          setting = connection.fetch index_key, :write
+          setting = connection.fetch index_key
           setting[:opened]
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
 
@@ -587,31 +568,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be
-        end
-      end
-
-      describe "write connection is active" do
-        subject do
-          index_key = connection.index_writer_key model_class
-          connection.open_index model_class, index_key, :write
-          connection.write_connection.active?
-        end
-
-        it do
-          be
-        end
-      end
-
-      describe "read connection is not active" do
-        subject do
-          index_key = connection.index_key model_class, :id
-          connection.open_index model_class, index_key, :write
-          connection.read_connection.active?
-        end
-
-        it do
-          be_falsy
+          expect(subject).to be
         end
       end
     end
@@ -648,12 +605,16 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
 
       describe "index setting for Hobby:id" do
         before :each do
+          index_key = connection.index_key another_model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened] = true
+
           begin
             index_key = connection.index_key model_class, :id
             connection.open_index model_class, index_key
@@ -668,7 +629,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be
+          expect(subject).to be
         end
       end
     end
@@ -705,12 +666,16 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
 
       describe "index setting for Hobby:id" do
         before :each do
+          index_key = connection.index_key another_model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened] = true
+
           begin
             index_key = connection.index_key model_class, :id
             connection.open_index model_class, index_key
@@ -725,7 +690,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
     end
@@ -738,7 +703,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        eql ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"].symbolize_keys
+        expect(subject).to eql(ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"].symbolize_keys)
       end
     end
 
@@ -748,7 +713,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        eql ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_write"].symbolize_keys
+        expect(subject).to eql(ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_write"].symbolize_keys)
       end
     end
   end
@@ -781,7 +746,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be
+          expect(subject).to be
         end
       end
 
@@ -792,7 +757,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be
+          expect(subject).to be
         end
       end
     end
@@ -809,7 +774,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
 
@@ -820,7 +785,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          be_falsy
+          expect(subject).to be_falsy
         end
       end
     end
@@ -831,42 +796,90 @@ describe ActiveRecordHandlerSocket::Connection do
       "index_people_on_age_and_status"
     end
 
+    let :key do
+      :age_and_status
+    end
+
     let :index_key do
-      connection.index_key model_class, index_name
+      connection.index_key model_class, key
+    end
+
+    subject do
+      connection.add_index_setting model_class, key, index_name
+    end
+
+    it "returns index_key" do
+      expect(subject).to eql(index_key)
     end
 
     context "with columns" do
       before :each do
         @initial_count = connection.index_count_cache
-        connection.add_index_setting model_class, index_key, index_name, :columns => %W[id name age]
+        connection.add_index_setting model_class, key, index_name, :columns => %W[id name age]
+      end
+
+      let :setting do
+        {
+          :id     => @initial_count + 1,
+          :index  => index_name,
+          :fields => %W[id name age],
+          :opened => false
+        }
+      end
+
+      subject do
+        connection.fetch index_key
       end
 
       it do
-        setting = {
-          :id     => @initial_count + 1,
-          :index  => index_name,
-          :fields => [:id, :name, :age],
-          :opened => false
-        }
-
-        eql setting
+        expect(subject).to eql(setting)
       end
 
       context "with write option" do
         before :each do
           @initial_count = connection.index_count_cache
-          connection.add_index_setting model_class, index_key, index_name, :columns => %W[id name age], :write => true
+          connection.add_index_setting model_class, key, index_name, :columns => %W[id name age], :write => true
+        end
+
+        let :setting do
+          {
+            :id     => @initial_count + 1,
+            :index  => index_name,
+            :fields => %W[name age],
+            :opened => false
+          }
+        end
+
+        subject do
+          connection.fetch index_key
         end
 
         it do
-          setting = {
-            :id     => @initial_count + 1,
-            :index  => index_name,
-            :fields => [:name, :age],
-            :opened => false
-          }
+          expect(subject).to eql(setting)
+        end
+      end
 
-          eql setting
+      context "with empty columns" do
+        before :each do
+          @initial_count = connection.index_count_cache
+        end
+
+        it do
+          expect{
+            connection.add_index_setting model_class, key, index_name, :columns => []
+          }.to raise_error(ArgumentError)
+        end
+      end
+
+      context "with writer specified columns only id" do
+        before :each do
+          @initial_count = connection.index_count_cache
+        end
+
+        it do
+          expect{
+            connection.add_index_setting model_class, key, index_name, :columns => [:id], :write => true
+          }.to raise_error(ArgumentError)
         end
       end
     end
@@ -874,44 +887,55 @@ describe ActiveRecordHandlerSocket::Connection do
     context "without columns" do
       before :each do
         @initial_count = connection.index_count_cache
-        connection.add_index_setting model_class, index_key, index_name
+        connection.add_index_setting model_class, key, index_name
+      end
+
+      let :setting do
+        {
+          :id     => @initial_count + 1,
+          :index  => index_name,
+          :fields => %W[id name age status],
+          :opened => false
+        }
+      end
+
+      subject do
+        connection.fetch index_key
       end
 
       it do
-        setting = {
-          :id     => @initial_count + 1,
-          :index  => index_name,
-          :fields => [:id, :name, :age, :status],
-          :opened => false
-        }
-
-        eql setting
+        expect(subject).to eql(setting)
       end
 
       context "with write option" do
         before :each do
           @initial_count = connection.index_count_cache
-          connection.add_index_setting model_class, index_key, index_name, :write => true
+          connection.add_index_setting model_class, key, index_name, :write => true
+        end
+
+        let :setting do
+          {
+            :id     => @initial_count + 1,
+            :index  => index_name,
+            :fields => %W[name age status],
+            :opened => false
+          }
+        end
+
+        subject do
+          connection.fetch index_key
         end
 
         it do
-          setting = {
-            :id     => @initial_count + 1,
-            :index  => index_name,
-            :fields => [:name, :age, :status],
-            :opened => false
-          }
-
-          eql setting
+          expect(subject).to eql(setting)
         end
       end
     end
 
     context "when existing setting overwrite" do
       before :each do
-        @initial_count = connection.index_count_cache
-        connection.add_index_setting model_class, index_key, index_name
-        connection.add_index_setting model_class, index_key, index_name
+        connection.add_index_setting model_class, key, index_name
+        connection.add_index_setting model_class, key, index_name
       end
 
       subject do
@@ -920,7 +944,24 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        match /ActiveRecordHandlerSocket: #{index_key} was updated/
+        expect(subject).to match(/ActiveRecordHandlerSocket: #{index_key} was updated/)
+      end
+    end
+
+    context "when multi-time call" do
+      before :each do
+        @first_index_key  = connection.add_index_setting model_class, :first,  index_name
+        @second_index_key = connection.add_index_setting model_class, :second, index_name
+      end
+
+      subject do
+        first_setting = connection.fetch @first_index_key
+        first_setting[:id]
+      end
+
+      it "should increment" do
+        second_setting = connection.fetch @second_index_key
+        expect(subject).to eql(second_setting[:id] - 1)
       end
     end
   end
@@ -931,7 +972,7 @@ describe ActiveRecordHandlerSocket::Connection do
     end
 
     it do
-      [ model_class, :id ].join ":"
+      expect(subject).to eql([ model_class, :id ].join(":"))
     end
   end
 
@@ -941,7 +982,7 @@ describe ActiveRecordHandlerSocket::Connection do
     end
 
     it do
-      [ model_class, klass::WRITER_KEY ].join ":"
+      expect(subject).to eql([ model_class, klass::WRITER_KEY ].join(":"))
     end
   end
 
@@ -958,7 +999,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        be_kind_of Fixnum
+        expect(subject).to be_kind_of(Fixnum)
       end
     end
 
@@ -968,7 +1009,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        eql "PRIMARY"
+        expect(subject).to eql("PRIMARY")
       end
     end
 
@@ -978,7 +1019,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        eql %W[id name age status]
+        expect(subject).to eql(%W[id name age status])
       end
     end
 
@@ -988,27 +1029,23 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it do
-        be
+        expect(subject).to be
       end
     end
 
     context "when key but not a index_key given" do
-      subject do
-        connection.fetch :id
-      end
-
       it "should raise error" do
-        raise_error ActiveRecordHandlerSocket::UnknownIndexError
+        expect{
+          connection.fetch :id
+        }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
       end
     end
 
     context "when unknown key given" do
-      subject do
-        connection.fetch :unknown
-      end
-
       it "should raise error" do
-        raise_error ActiveRecordHandlerSocket::UnknownIndexError
+        expect{
+          connection.fetch :unknown
+        }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
       end
     end
   end

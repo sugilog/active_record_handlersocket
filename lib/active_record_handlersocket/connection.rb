@@ -90,7 +90,7 @@ module ActiveRecordHandlerSocket
 
     def connection_config(name)
       config_key = "#{RAILS_ENV}_hs_#{name}"
-      @model_class.configurations[config_key].symbolize_keys
+      @model_class.configurations[config_key].try(:symbolize_keys)
     end
 
     def index_count
@@ -103,16 +103,17 @@ module ActiveRecordHandlerSocket
       end
     end
 
-    def add_index_setting(model, index_key, index, options = {})
-      columns = options[:columns] || model.column_names
-      columns = columns.map &:to_s
+    def add_index_setting(model, key, index, options = {})
+      index_key = index_key model, key
+      columns   = options[:columns] || model.column_names
+      columns   = columns.map &:to_s
 
       if options[:write]
         columns = columns - [model.primary_key]
       end
 
       if columns.empty?
-        raise ArgumentError, "columns should assign without :#{primary_key}"
+        raise ArgumentError, "columns should assign without :#{model.primary_key}"
       end
 
       if @indexes.has_key?(index_key)
@@ -127,6 +128,8 @@ module ActiveRecordHandlerSocket
       }
 
       @indexes.update index_key => setting
+
+      index_key
     end
 
     def index_key(model, key)
@@ -142,6 +145,3 @@ module ActiveRecordHandlerSocket
     end
   end
 end
-
-
-
