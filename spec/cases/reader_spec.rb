@@ -75,23 +75,23 @@ describe ActiveRecordHandlerSocket::Connection do
       context "for :single" do
         context "with operator option" do
           it "should find greater value record" do
-            hs_person = connection.find(model_class, :first, :id, [0, :operator => ">"])
+            hs_person = connection.find(model_class, :first, :id, [0, {:operator => ">"}])
 
             expect(hs_person).to be_kind_of(model_class)
 
-            hs_person = connection.find(model_class, :first, :id, [3, :operator => ">"])
+            hs_person = connection.find(model_class, :first, :id, [3, {:operator => ">"}])
 
             expect(hs_person).to be_nil
           end
 
           it "should find less value record" do
             person    = model_class.find_by_id(2)
-            hs_person = connection.find(model_class, :first, :id, [3, :operator => "<"])
+            hs_person = connection.find(model_class, :first, :id, [3, {:operator => "<"}])
 
             expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
 
-            hs_person = connection.find(model_class, :first, :id, [0, :operator => "<"])
+            hs_person = connection.find(model_class, :first, :id, [0, {:operator => "<"}])
 
             expect(hs_person).to be_nil
           end
@@ -100,7 +100,7 @@ describe ActiveRecordHandlerSocket::Connection do
         context "with each_limit option" do
           it "should ignore each_limit option" do
             person    = model_class.find_by_id(2)
-            hs_person = connection.find(model_class, :first, :id, [3, :operator => "<", :each_limit => 10])
+            hs_person = connection.find(model_class, :first, :id, [3, {:operator => "<", :each_limit => 10}])
 
             expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
@@ -112,23 +112,23 @@ describe ActiveRecordHandlerSocket::Connection do
       context "for :multi" do
         context "with operator option" do
           it "should find greater value record" do
-            hs_people = connection.find(model_class, :multi, :id, [0, :operator => ">"])
+            hs_people = connection.find(model_class, :multi, :id, [0, {:operator => ">"}])
 
             expect(hs_people.size).to  eql(1)
             expect(hs_people.first).to be_kind_of(model_class)
 
-            hs_people = connection.find(model_class, :multi, :id, [3, :operator => ">"])
+            hs_people = connection.find(model_class, :multi, :id, [3, {:operator => ">"}])
 
             expect(hs_people).to be_empty
           end
 
           it "should find less value record" do
             people    = find_all(model_class, :id => 2)
-            hs_people = connection.find(model_class, :multi, :id, [3, :operator => "<"])
+            hs_people = connection.find(model_class, :multi, :id, [3, {:operator => "<"}])
 
             expect(hs_people).to eql(people)
 
-            hs_people = connection.find(model_class, :multi, :id, [0, :operator => "<"])
+            hs_people = connection.find(model_class, :multi, :id, [0, {:operator => "<"}])
 
             expect(hs_people).to be_empty
           end
@@ -137,7 +137,7 @@ describe ActiveRecordHandlerSocket::Connection do
         context "with each_limit option" do
           it "should find greater value records" do
             people    = find_all(model_class, :id => [1, 2, 3])
-            hs_people = connection.find(model_class, :multi, :id, [0, :operator => ">", :each_limit => 10])
+            hs_people = connection.find(model_class, :multi, :id, [0, {:operator => ">", :each_limit => 10}])
 
             expect(hs_people).to eql(people)
           end
@@ -145,7 +145,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
         context "with discarded limit option" do
           it "should ignore option" do
-            hs_people = connection.find(model_class, :multi, :id, [0, :operator => ">", :limit => 10])
+            hs_people = connection.find(model_class, :multi, :id, [0, {:operator => ">", :limit => 10}])
 
             expect(hs_people).to eql([@bob])
           end
@@ -190,12 +190,12 @@ describe ActiveRecordHandlerSocket::Connection do
         context "when use 1st sequence column" do
           it "should find records" do
             people    = find_all(model_class, :age => 36)
-            hs_people = connection.find(model_class, :multi, :age_and_status, [36, :each_limit => 10])
+            hs_people = connection.find(model_class, :multi, :age_and_status, [36, {:each_limit => 10}])
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
 
-            hs_people = connection.find(model_class, :multi, :age_and_status, [[36], :each_limit => 10])
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[36], {:each_limit => 10}])
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
@@ -206,7 +206,7 @@ describe ActiveRecordHandlerSocket::Connection do
           it "should find records" do
             people    = find_all(model_class, :age => 36, :status => false)
             # XXX: Cannot use `true/false`
-            hs_people = connection.find(model_class, :multi, :age_and_status, [[36, 0], :each_limit => 10])
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[36, 0], {:each_limit => 10}])
 
             expect(hs_people.size).to eql(1)
             expect(hs_people).to eql(people)
@@ -215,7 +215,7 @@ describe ActiveRecordHandlerSocket::Connection do
           it "should find records by multi condition" do
             people    = [find_all(model_class, :age => 36, :status => false), find_all(model_class, :age => 36, :status => true)].flatten
             # XXX: Cannot use `true/false`
-            hs_people = connection.find(model_class, :multi, :age_and_status, [[36, 0], [36, 1], :each_limit => 10])
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[36, 0], [36, 1], {:each_limit => 10}])
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
@@ -225,7 +225,7 @@ describe ActiveRecordHandlerSocket::Connection do
         context "when use not 1st sequence column" do
           it "should find records" do
             # XXX: Cannot use `true/false`
-            hs_people = connection.find(model_class, :multi, :age_and_status, [[0], :each_limit => 10])
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[0], {:each_limit => 10}])
 
             expect(hs_people).to be_empty
           end
