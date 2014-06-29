@@ -14,31 +14,24 @@ describe ActiveRecordHandlerSocket::Connection do
   end
 
   let! :connection do
-    instance = klass.new ActiveRecord::Base.logger
-    instance.establish_connection :read
-    instance.establish_connection :write
-    instance
+    klass.establish_connection ActiveRecord::Base.logger
   end
 
-  def add_index_setting
-    index_key   = @connection.index_key model_class, :id
-    @connection.add_index_setting model_class, index_key, "PRIMARY"
-    @connection.open_index model_class, index_key
+  def add_index_setting(_connection)
+    index_key   = _connection.index_key model_class, :id
+    _connection.add_index_setting model_class, index_key, "PRIMARY"
+    _connection.open_index model_class, index_key
 
-    index_key   = @connection.index_writer_key model_class
-    @connection.add_index_setting model_class, index_key, "PRIMARY"
-    @connection.open_index model_class, index_key
+    index_key   = _connection.index_writer_key model_class
+    _connection.add_index_setting model_class, index_key, "PRIMARY"
+    _connection.open_index model_class, index_key
   end
 
   describe ".establish_connection" do
     context "without options" do
-      before :each do
-        @connection = klass.establish_connection logger
-      end
-
       describe "returned value" do
         subject do
-          @connection
+          connection
         end
 
         it "should return connection instance" do
@@ -48,7 +41,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".logger" do
         subject do
-          @conneciton.logger
+          conneciton.logger
         end
 
         it "should same given logger" do
@@ -58,7 +51,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".model_class" do
         subject do
-          @conneciton.model_class
+          conneciton.model_class
         end
 
         it "should same given logger" do
@@ -68,7 +61,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".connections" do
         subject do
-          @connection.connections
+          connection.connections
         end
 
         it "should set read conneciton" do
@@ -84,7 +77,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".indexes" do
         subject do
-          @connection.indexes
+          connection.indexes
         end
 
         it "should set blank hash" do
@@ -95,7 +88,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
       describe ".index_count_cache" do
         subject do
-          @connection.index_count_cache
+          connection.index_count_cache
         end
 
         it "should set 0" do
@@ -212,8 +205,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#read_connection" do
     subject do
-      @connection = klass.establish_connection logger
-      @connection.read_connection
+      connection.read_connection
     end
 
     it "should return handlersocket" do
@@ -223,8 +215,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#write_connection" do
     subject do
-      @connection = klass.establish_connection logger
-      @connection.write_connection
+      connection.write_connection
     end
 
     it "should return handlersocket" do
@@ -234,17 +225,16 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#reconnect!" do
     before :each do
-      @connection = klass.establish_connection logger
-      add_index_setting
+      add_index_setting connection
 
-      @connection.read_connection.close
-      @connection.write_connection.close
+      connection.read_connection.close
+      connection.write_connection.close
 
-      @connection.reset_opened_indexes
+      connection.reset_opened_indexes
     end
 
     subject do
-      @connection.reconnect!
+      connection.reconnect!
     end
 
     it "should return true" do
@@ -253,7 +243,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "then find" do
       before :each do
-        @connection.reconnect!
+        connection.reconnect!
       end
 
       subject do
@@ -267,7 +257,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "then create" do
       before :each do
-        @connection.reconnect!
+        connection.reconnect!
       end
 
       subject do
@@ -282,12 +272,12 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "then index_setting for read" do
       before :each do
-        @connection.reconnect!
+        connection.reconnect!
       end
 
       subject do
-        index_key = @connection.index_key model_class, :id
-        setting = @connection.fetch index_key
+        index_key = connection.index_key model_class, :id
+        setting   = connection.fetch index_key
         setting[:opened]
       end
 
@@ -298,12 +288,12 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "then index_setting for write" do
       before :each do
-        @connection.reconnect!
+        connection.reconnect!
       end
 
       subject do
-        index_key = @connection.index_writer_key model_class
-        setting = @connection.fetch index_key
+        index_key = connection.index_writer_key model_class
+        setting   = connection.fetch index_key
         setting[:opened]
       end
 
@@ -315,13 +305,12 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#acitve?" do
     before :each do
-      @connection = klass.establish_connection logger
-      add_index_setting
+      add_index_setting connection
     end
 
     context "when connected" do
       subject do
-        @connection.active?
+        connection.active?
       end
 
       it "should return true" do
@@ -331,11 +320,11 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "when read closed" do
       subject do
-        @connection.active?
+        connection.active?
       end
 
       before :each do
-        @connection.read_connection.close
+        connection.read_connection.close
       end
 
       it "should return false" do
@@ -345,12 +334,12 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "when write closed" do
       subject do
-        @connection.active?
+        connection.active?
       end
 
       before :each do
         # open index
-        @connection.write_connection.close
+        connection.write_connection.close
       end
 
       it "should return false" do
@@ -376,12 +365,8 @@ describe ActiveRecordHandlerSocket::Connection do
   end
 
   describe "#index_key" do
-    before :each do
-      @connection = klass.establish_connection logger
-    end
-
     subject do
-      @connection.index_key model_class, :id
+      connection.index_key model_class, :id
     end
 
     it do
@@ -390,12 +375,8 @@ describe ActiveRecordHandlerSocket::Connection do
   end
 
   describe "#index_writer_key" do
-    before :each do
-      @connection = klass.establish_connection logger
-    end
-
     subject do
-      @connection.index_writer_key model_class
+      connection.index_writer_key model_class
     end
 
     it do
@@ -405,10 +386,9 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#fetch" do
     before :each do
-      @connection = klass.establish_connection logger
-      add_index_setting
-      index_key = @connection.index_key model_class, :id
-      @setting = @connection.fetch index_key
+      add_index_setting connection
+      index_key = connection.index_key model_class, :id
+      @setting  = connection.fetch index_key
     end
 
     context "with id" do
@@ -453,7 +433,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "when key but not a index_key given" do
       subject do
-        @connection.fetch :id
+        connection.fetch :id
       end
 
       it "should raise error" do
@@ -463,7 +443,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "when unknown key given" do
       subject do
-        @connection.fetch :unknown
+        connection.fetch :unknown
       end
 
       it "should raise error" do
