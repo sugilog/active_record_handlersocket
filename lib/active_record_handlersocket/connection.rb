@@ -24,7 +24,9 @@ module ActiveRecordHandlerSocket
 
       if config
         config = config.symbolize_keys
-        connection = HandlerSocket.new :host => config[:host], :port => config[:port].to_s
+        current_config = {:host => config[:host], :port => config[:port].to_s}
+        connection = HandlerSocket.new current_config
+        connection.instance_variable_set :@_current_config, current_config
         @connections.update name.to_sym => connection
       else
         raise ArgumentError, "unknown configuration: #{name}"
@@ -80,7 +82,7 @@ module ActiveRecordHandlerSocket
         error = connection.error
         raise ArgumentError, "invalid setting given: #{error}"
       else
-        hs_reset_opened_indexes
+        reset_opened_indexes
         error = connection.error
         raise ActiveRecordHandlerSocket::CannotConnectError, "connection lost: #{error}"
       end
@@ -103,6 +105,15 @@ module ActiveRecordHandlerSocket
 
     def add_index_setting(model, index_key, index, options = {})
       columns = options[:columns] || model.column_names
+      columns = columns.map &:to_s
+
+      if options[:write]
+        columns = columns - [model.primary_key]
+      end
+
+      if columns.empty?
+        raise ArgumentError, "columns should assign without :#{primary_key}"
+      end
 
       if @indexes.has_key?(index_key)
         warn "ActiveRecordHandlerSocket: #{index_key} was updated"
@@ -111,7 +122,7 @@ module ActiveRecordHandlerSocket
       setting = {
         :id     => index_count,
         :index  => index,
-        :fields => columns.map(&:to_s),
+        :fields => columns,
         :opened => false
       }
 

@@ -9,6 +9,10 @@ describe ActiveRecordHandlerSocket::Connection do
     Person
   end
 
+  let :another_model_class do
+    Hobby
+  end
+
   let :logger do
     ActiveRecord::Base.logger
   end
@@ -25,6 +29,10 @@ describe ActiveRecordHandlerSocket::Connection do
     index_key   = _connection.index_writer_key model_class
     _connection.add_index_setting model_class, index_key, "PRIMARY"
     _connection.open_index model_class, index_key
+
+    index_key   = _connection.index_key another_model_class, :id
+    _connection.add_index_setting another_model_class, index_key, "PRIMARY"
+    _connection.open_index another_model_class, index_key
   end
 
   describe ".establish_connection" do
@@ -64,14 +72,24 @@ describe ActiveRecordHandlerSocket::Connection do
           connection.connections
         end
 
-        it "should set read conneciton" do
-          expect(subject[:read]).to be
-          expect(subject[:read]).to be_kind_of(HandlerSocket)
+        context :read do
+          subject do
+            connection.connections[:read]
+          end
+
+          it "should set read conneciton" do
+            be_kind_of HandlerSocket
+          end
         end
 
-        it "should set write conneciton" do
-          expect(subject[:write]).to be
-          expect(subject[:write]).to be_kind_of(HandlerSocket)
+        context :write do
+          subject do
+            connection.connections[:write]
+          end
+
+          it "should set write conneciton" do
+            be_kind_of HandlerSocket
+          end
         end
       end
 
@@ -155,12 +173,24 @@ describe ActiveRecordHandlerSocket::Connection do
           @connection.connections
         end
 
-        it "should set read conneciton" do
-          expect(subject[:read]).to be_nil
+        context :read do
+          subject do
+            @connection.connections[:read]
+          end
+
+          it "should set read conneciton" do
+            be_nil
+          end
         end
 
-        it "should set write conneciton" do
-          expect(subject[:write]).to be_nil
+        context :write do
+          subject do
+            @connection.connections[:write]
+          end
+
+          it "should set write conneciton" do
+            be_nil
+          end
         end
       end
 
@@ -199,6 +229,96 @@ describe ActiveRecordHandlerSocket::Connection do
         it "should same given logger" do
           eql model_class
         end
+      end
+    end
+  end
+
+  describe "#establish_connection" do
+    before :each do
+      @connection = klass.new logger
+    end
+
+    context "before establish for read" do
+      subject do
+        @connection.connections[:read]
+      end
+
+      it "should not have connections" do
+        be_nil
+      end
+    end
+
+    context "before establish for write" do
+      subject do
+        @connection.connections[:write]
+      end
+
+      it "should not have connections" do
+        be_nil
+      end
+    end
+
+    context "with read" do
+      before :each do
+        connection.establish_connection :read
+      end
+
+      subject do
+        @connection.connections[:read]
+      end
+
+      it "should have instance" do
+        be_kind_of HandlerSocket
+      end
+
+      describe ":@current_config" do
+        subject do
+          @connection.connections[:read].instance_variable_get(:@_current_config)
+        end
+
+        it "should have current_config" do
+          config = @connection.connection_config :read
+          config = config.slice :host, :port
+
+          eql config
+        end
+      end
+    end
+
+    context "with write" do
+      before :each do
+        connection.establish_connection :write
+      end
+
+      subject do
+        @connection.connections[:write]
+      end
+
+      it "should have instance" do
+        be_kind_of HandlerSocket
+      end
+
+      describe ":@current_config" do
+        subject do
+          @connection.connections[:write].instance_variable_get(:@_current_config)
+        end
+
+        it "should have current_config" do
+          config = @connection.connection_config :write
+          config = config.slice :host, :port
+
+          eql config
+        end
+      end
+    end
+
+    context "with unknown" do
+      subject do
+        connection.establish_connection :write
+      end
+
+      it do
+        raise_error ArgumentError
       end
     end
   end
@@ -348,20 +468,461 @@ describe ActiveRecordHandlerSocket::Connection do
     end
   end
 
-
   describe "#open_index" do
+    before :each do
+      add_index_setting connection
+    end
+
+    context "when index opened" do
+      subject do
+        index_key = connection.index_key model_class, :id
+        connection.open_index model_class, index_key
+      end
+
+      it "should just return" do
+        be_nil
+      end
+    end
+
+    context "when open index" do
+      before :each do
+        connection.reconnect!
+      end
+
+      describe "return value" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.open_index model_class, index_key
+        end
+
+        it do
+          be
+        end
+      end
+
+      describe "before opened" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+
+      describe "marked index setting opened" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.open_index model_class, index_key
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+
+      describe "write connection is not active" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.open_index model_class, index_key
+          connection.write_connection.active?
+        end
+
+        it do
+          be
+        end
+      end
+
+      describe "read connection is active" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.open_index model_class, index_key
+          connection.read_connection.active?
+        end
+
+        it do
+          be
+        end
+      end
+    end
+
+    context "when open write index" do
+      before :each do
+        connection.reconnect!
+      end
+
+      describe "return value" do
+        subject do
+          index_key = connection.index_writer_key model_class
+          connection.open_index model_class, index_key, :write
+        end
+
+        it do
+          be
+        end
+      end
+
+      describe "before opened" do
+        subject do
+          index_key = connection.index_writer_key model_class
+          setting = connection.fetch index_key, :write
+          setting[:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+
+      describe "marked index setting opened" do
+        subject do
+          index_key = connection.index_writer_key model_class
+          connection.open_index model_class, index_key, :write
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be
+        end
+      end
+
+      describe "write connection is active" do
+        subject do
+          index_key = connection.index_writer_key model_class
+          connection.open_index model_class, index_key, :write
+          connection.write_connection.active?
+        end
+
+        it do
+          be
+        end
+      end
+
+      describe "read connection is not active" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.open_index model_class, index_key, :write
+          connection.read_connection.active?
+        end
+
+        it do
+          be_falsy
+        end
+      end
+    end
+
+    context "when invalid result" do
+      before :each do
+        stub_object connection.read_connection, :open_index, 2
+        stub_object connection.read_connection, :error,      "err"
+
+        connection.reconnect!
+      end
+
+      it "should raise ArgumentError" do
+        index_key = connection.index_key model_class, :id
+
+        expect {
+          connection.open_index model_class, index_key
+        }.to raise_error(ArgumentError)
+      end
+
+      describe "index setting for Person:id" do
+        before :each do
+          begin
+            index_key = connection.index_key model_class, :id
+            connection.open_index model_class, index_key
+          rescue ArgumentError
+          end
+        end
+
+        subject do
+          index_key = connection.index_key model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+
+      describe "index setting for Hobby:id" do
+        before :each do
+          begin
+            index_key = connection.index_key model_class, :id
+            connection.open_index model_class, index_key
+          rescue ArgumentError
+          end
+        end
+
+        subject do
+          index_key = connection.index_key another_model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be
+        end
+      end
+    end
+
+    context "when connection error" do
+      before :each do
+        stub_object connection.read_connection, :open_index, -1
+        stub_object connection.read_connection, :error,      "connection lost"
+
+        connection.reconnect!
+      end
+
+      it "should raise CannotConnectionError" do
+        index_key = connection.index_key model_class, :id
+
+        expect{
+          connection.open_index model_class, index_key
+        }.to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
+      end
+
+      describe "index setting for Person:id" do
+        before :each do
+          begin
+            index_key = connection.index_key model_class, :id
+            connection.open_index model_class, index_key
+          rescue ActiveRecordHandlerSocket::CannotConnectError
+          end
+        end
+
+        subject do
+          index_key = connection.index_key model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+
+      describe "index setting for Hobby:id" do
+        before :each do
+          begin
+            index_key = connection.index_key model_class, :id
+            connection.open_index model_class, index_key
+          rescue ActiveRecordHandlerSocket::CannotConnectError
+          end
+        end
+
+        subject do
+          index_key = connection.index_key another_model_class, :id
+          setting = connection.fetch index_key
+          setting[:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+    end
   end
 
   describe "#connection_config" do
+    context :read do
+      subject do
+        connection.connection_config :read
+      end
+
+      it do
+        eql ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"].symbolize_keys
+      end
+    end
+
+    context :write do
+      subject do
+        connection.connection_config :write
+      end
+
+      it do
+        eql ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_write"].symbolize_keys
+      end
+    end
   end
 
   describe "#index_count" do
+    let :initial_count do
+      connection.index_count_cache
+    end
+
+    it "should increment" do
+      # initialize
+      initial_count
+
+      expect(connection.index_count).to eql(initial_count + 1)
+      expect(connection.index_count).to eql(initial_count + 2)
+      expect(connection.index_count).to eql(initial_count + 3)
+    end
   end
 
-  describe "#reset_opened_index" do
+  describe "#reset_opened_indexes" do
+    before :each do
+      add_index_setting connection
+    end
+
+    context "before reset" do
+      describe "for Person:id" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.indexes[index_key][:opened]
+        end
+
+        it do
+          be
+        end
+      end
+
+      describe "for Hobby:id" do
+        subject do
+          index_key = connection.index_key another_model_class, :id
+          connection.indexes[index_key][:opened]
+        end
+
+        it do
+          be
+        end
+      end
+    end
+
+    context "after reset" do
+      before :each do
+        connection.reset_opened_indexes
+      end
+
+      describe "for Person:id" do
+        subject do
+          index_key = connection.index_key model_class, :id
+          connection.indexes[index_key][:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+
+      describe "for Hobby:id" do
+        subject do
+          index_key = connection.index_key another_model_class, :id
+          connection.indexes[index_key][:opened]
+        end
+
+        it do
+          be_falsy
+        end
+      end
+    end
   end
 
   describe "#add_index_setting" do
+    let :index_name do
+      "index_people_on_age_and_status"
+    end
+
+    let :index_key do
+      connection.index_key model_class, index_name
+    end
+
+    context "with columns" do
+      before :each do
+        @initial_count = connection.index_count_cache
+        connection.add_index_setting model_class, index_key, index_name, :columns => %W[id name age]
+      end
+
+      it do
+        setting = {
+          :id     => @initial_count + 1,
+          :index  => index_name,
+          :fields => [:id, :name, :age],
+          :opened => false
+        }
+
+        eql setting
+      end
+
+      context "with write option" do
+        before :each do
+          @initial_count = connection.index_count_cache
+          connection.add_index_setting model_class, index_key, index_name, :columns => %W[id name age], :write => true
+        end
+
+        it do
+          setting = {
+            :id     => @initial_count + 1,
+            :index  => index_name,
+            :fields => [:name, :age],
+            :opened => false
+          }
+
+          eql setting
+        end
+      end
+    end
+
+    context "without columns" do
+      before :each do
+        @initial_count = connection.index_count_cache
+        connection.add_index_setting model_class, index_key, index_name
+      end
+
+      it do
+        setting = {
+          :id     => @initial_count + 1,
+          :index  => index_name,
+          :fields => [:id, :name, :age, :status],
+          :opened => false
+        }
+
+        eql setting
+      end
+
+      context "with write option" do
+        before :each do
+          @initial_count = connection.index_count_cache
+          connection.add_index_setting model_class, index_key, index_name, :write => true
+        end
+
+        it do
+          setting = {
+            :id     => @initial_count + 1,
+            :index  => index_name,
+            :fields => [:name, :age, :status],
+            :opened => false
+          }
+
+          eql setting
+        end
+      end
+    end
+
+    context "when existing setting overwrite" do
+      before :each do
+        @initial_count = connection.index_count_cache
+        connection.add_index_setting model_class, index_key, index_name
+        connection.add_index_setting model_class, index_key, index_name
+      end
+
+      subject do
+        warning_log.rewind
+        warned = warning_log.read.chomp
+      end
+
+      it do
+        match /ActiveRecordHandlerSocket: #{index_key} was updated/
+      end
+    end
   end
 
   describe "#index_key" do
@@ -451,177 +1012,4 @@ describe ActiveRecordHandlerSocket::Connection do
       end
     end
   end
-
-
-
-  # describe "hs_index_count" do
-  #   it "should be private method" do
-  #     expect{
-  #       klass.hs_index_count
-  #     }.to raise_error(NoMethodError)
-  #   end
-
-  #   it "should increment hs_index_count_cache" do
-  #     initial_count = klass.__send__(:hs_index_count_cache)
-  #     klass.__send__(:hs_index_count)
-  #     expect(klass.__send__(:hs_index_count_cache)).to eql(initial_count + 1)
-  #     klass.__send__(:hs_index_count)
-  #     expect(klass.__send__(:hs_index_count_cache)).to eql(initial_count + 2)
-  #   end
-  # end
-
-  # describe "hs_reset_opened_index" do
-  #   it "should mark not opened for all index settings" do
-  #     klass.hsfind_by_id(1)
-  #     another_klass.hsfind_by_id(1)
-
-  #     expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
-  #     expect(ActiveRecord::Base.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
-
-  #     klass.__send__(:hs_reset_opened_indexes)
-
-  #     expect(ActiveRecord::Base.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #     expect(ActiveRecord::Base.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #   end
-  # end
-
-
-
-  # describe "hs_establish_connection" do
-  #   context "when no name given" do
-  #     before :each do
-  #       @original_connections = ActiveRecord::Base.__send__ :hs_connections
-  #       ActiveRecordHandlerSocket::Connection::PrivateMethods.__send__ :class_variable_set, :@@hs_connections, {}
-  #     end
-
-  #     after :each do
-  #       ActiveRecordHandlerSocket::Connection::PrivateMethods.__send__ :class_variable_set, :@@hs_connections, @original_connections
-  #     end
-
-  #     it "should add read connection" do
-  #       ActiveRecord::Base.__send__ :hs_establish_connection
-  #       expect(ActiveRecord::Base.__send__(:hs_connections)[:read]).to be_kind_of(HandlerSocket)
-  #     end
-
-  #     it "should add write connection" do
-  #       ActiveRecord::Base.__send__ :hs_establish_connection
-  #       expect(ActiveRecord::Base.__send__(:hs_connections)[:write]).to be_kind_of(HandlerSocket)
-  #     end
-  #   end
-
-  #   context "when read connection" do
-  #     before :each do
-  #       @original_connections = ActiveRecord::Base.__send__ :hs_connections
-  #       ActiveRecordHandlerSocket::Connection::PrivateMethods.__send__ :class_variable_set, :@@hs_connections, {}
-  #     end
-
-  #     after :each do
-  #       ActiveRecordHandlerSocket::Connection::PrivateMethods.__send__ :class_variable_set, :@@hs_connections, @original_connections
-  #     end
-
-  #     it "should add read connection" do
-  #       ActiveRecord::Base.__send__ :hs_establish_connection, :read
-  #       expect(ActiveRecord::Base.__send__(:hs_connections)[:read]).to be_kind_of(HandlerSocket)
-  #     end
-
-  #     it "should add write connection" do
-  #       ActiveRecord::Base.__send__ :hs_establish_connection, :write
-  #       expect(ActiveRecord::Base.__send__(:hs_connections)[:write]).to be_kind_of(HandlerSocket)
-  #     end
-  #   end
-
-  #   context "when unknown configuration name given" do
-  #     it "should raise error" do
-  #       expect{
-  #         ActiveRecord::Base.__send__ :hs_establish_connection, "test_hs_read"
-  #       }.to raise_error(ArgumentError)
-  #     end
-  #   end
-  # end
-
-  # describe "hs_open_index" do
-  #   context "when index opened" do
-  #     before :each do
-  #       klass.hsfind_by_id 1
-  #     end
-
-  #     it "should just return" do
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
-
-  #       expect(klass.__send__(:hs_open_index, klass.__send__(:hs_index_key, "id"))).to be_nil
-  #     end
-  #   end
-
-  #   context "when open index" do
-  #     before :each do
-  #       ActiveRecord::Base.__send__ :hs_reconnect!
-  #     end
-
-  #     it "should return true and mark opened" do
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-
-  #       expect(klass.__send__(:hs_open_index, klass.__send__(:hs_index_key, "id"))).to be
-
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).to be
-  #     end
-  #   end
-
-  #   context "when open write index" do
-  #     before :each do
-  #       ActiveRecord::Base.__send__ :hs_reconnect!
-  #     end
-
-  #     it "should return true and mark opened" do
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:opened]).not_to be
-
-  #       expect(klass.__send__(:hs_open_index, klass.__send__(:hs_index_writer_key))).to be
-
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_writer_key)][:opened]).to be
-  #     end
-  #   end
-
-  #   context "when invalid result" do
-  #     before :each do
-  #       ActiveRecord::Base.__send__ :hs_reconnect!
-  #       Hobby.hsfind_by_id 1
-
-  #       stub_object ActiveRecord::Base.__send__(:hs_read_connection), :open_index, 2
-  #       stub_object ActiveRecord::Base.__send__(:hs_read_connection), :error, "err"
-  #     end
-
-  #     it "should raise error" do
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #       expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
-
-  #       expect{
-  #         klass.__send__ :hs_open_index, klass.__send__(:hs_index_key, "id")
-  #       }.to raise_error(ArgumentError)
-
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #       expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
-  #     end
-  #   end
-
-  #   context "when connection error" do
-  #     before :each do
-  #       ActiveRecord::Base.__send__ :hs_reconnect!
-  #       another_klass.hsfind_by_id 1
-
-  #       stub_object(ActiveRecord::Base.__send__(:hs_read_connection), :open_index, -1)
-  #       stub_object(ActiveRecord::Base.__send__(:hs_read_connection), :error, "connection lost")
-  #     end
-
-  #     it "should raise error" do
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #       expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).to be
-
-  #       expect{
-  #         klass.__send__ :hs_open_index, klass.__send__(:hs_index_key, "id")
-  #       }.to raise_error(ActiveRecordHandlerSocket::CannotConnectError)
-
-  #       expect(klass.__send__(:hs_indexes)[klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #       expect(another_klass.__send__(:hs_indexes)[another_klass.__send__(:hs_index_key, "id")][:opened]).not_to be
-  #     end
-  #   end
-  # end
 end
