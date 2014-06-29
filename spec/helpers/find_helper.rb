@@ -17,10 +17,10 @@ module FindHelper
 
     {
       model_class => [
-        [ "PRIMARY", :write => true ]
+        [ "PRIMARY", { :write => true } ]
       ],
       another_model_class => [
-        [ "PRIMARY", :write => true ]
+        [ "PRIMARY", { :write => true } ]
       ]
     }.each do |model, settings|
       settings.each do |setting|
