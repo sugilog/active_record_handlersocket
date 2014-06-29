@@ -197,7 +197,7 @@ module ActiveRecordHandlerSocket
 
     module Writer
       def create(model, attributes)
-        index_key = index_writer_key self
+        index_key = index_writer_key model
 
         open_index model, index_key, :write
 

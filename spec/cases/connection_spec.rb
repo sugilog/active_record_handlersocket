@@ -21,17 +21,6 @@ describe ActiveRecordHandlerSocket::Connection do
     klass.establish_connection ActiveRecord::Base.logger
   end
 
-  def add_index_setting(_connection)
-    index_key = _connection.add_index_setting model_class, :id, "PRIMARY"
-    _connection.open_index model_class, index_key
-
-    index_key = _connection.add_index_setting model_class, ActiveRecordHandlerSocket::Connection::WRITER_KEY, "PRIMARY", :write => true
-    _connection.open_index model_class, index_key
-
-    index_key = _connection.add_index_setting another_model_class, :id, "PRIMARY"
-    _connection.open_index another_model_class, index_key
-  end
-
   describe ".establish_connection" do
     context "without options" do
       describe "returned value" do
