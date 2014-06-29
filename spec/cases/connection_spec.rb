@@ -25,7 +25,6 @@ describe ActiveRecordHandlerSocket::Connection do
     index_key = _connection.add_index_setting model_class, :id, "PRIMARY"
     _connection.open_index model_class, index_key
 
-    key = 
     index_key = _connection.add_index_setting model_class, ActiveRecordHandlerSocket::Connection::WRITER_KEY, "PRIMARY", :write => true
     _connection.open_index model_class, index_key
 

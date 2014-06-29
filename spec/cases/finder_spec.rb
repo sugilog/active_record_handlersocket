@@ -17,13 +17,29 @@ describe ActiveRecordHandlerSocket::Connection do
     klass.establish_connection ActiveRecord::Base.logger
   end
 
+  def add_index_setting(_connection)
+    index_key = _connection.add_index_setting model_class, :id, "PRIMARY"
+    _connection.open_index model_class, index_key
+
+    index_key = _connection.add_index_setting model_class, :age_and_status, "index_people_on_age_and_status"
+    _connection.open_index model_class, index_key
+
+    index_key = _connection.add_index_setting model_class, ActiveRecordHandlerSocket::Connection::WRITER_KEY, "PRIMARY", :write => true
+    _connection.open_index model_class, index_key
+
+    index_key = _connection.add_index_setting another_model_class, :id, "PRIMARY"
+    _connection.open_index another_model_class, index_key
+  end
+
   before :each do
     @bob      = FactoryGirl.create(:bob)
     @pharrell = FactoryGirl.create(:pharrell)
     @john     = FactoryGirl.create(:john)
+
+    add_index_setting connection
   end
 
-  describe "find" do
+  describe "#find" do
     context "when records exist" do
       context "for :first" do
         it "should get one record by id" do
@@ -156,7 +172,7 @@ describe ActiveRecordHandlerSocket::Connection do
         context "when use 1st sequence column" do
           it "should find record" do
             person    = model_class.find_by_age(36)
-            hs_person = model_class.hsfind_by_age_and_status(36)
+            hs_person = connection.find(model_class, :first, :age_and_status, [36])
 
             expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
@@ -167,7 +183,7 @@ describe ActiveRecordHandlerSocket::Connection do
           it "should find record" do
             person    = model_class.find_by_age_and_status(36, false)
             # XXX: Cannot use `true/false`
-            hs_person = model_class.hsfind_by_age_and_status(36, 0)
+            hs_person = connection.find(model_class, :first, :age_and_status, [36, 0])
 
             expect(hs_person).not_to be_nil
             expect(hs_person).to eql(person)
@@ -177,7 +193,7 @@ describe ActiveRecordHandlerSocket::Connection do
         context "when use not 1st sequence column" do
           it "should not find record" do
             # XXX: Cannot use `true/false`
-            hs_person = model_class.hsfind_by_age_and_status(0)
+            hs_person = connection.find(model_class, :first, :age_and_status, [0])
 
             expect(hs_person).to be_nil
           end
@@ -188,12 +204,12 @@ describe ActiveRecordHandlerSocket::Connection do
         context "when use 1st sequence column" do
           it "should find records" do
             people    = find_all(model_class, :age => 36)
-            hs_people = model_class.hsfind_multi_by_age_and_status(36, :each_limit => 10)
+            hs_people = connection.find(model_class, :multi, :age_and_status, [36, :each_limit => 10])
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
 
-            hs_people = model_class.hsfind_multi_by_age_and_status([36], :each_limit => 10)
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[36], :each_limit => 10])
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
@@ -204,7 +220,7 @@ describe ActiveRecordHandlerSocket::Connection do
           it "should find records" do
             people    = find_all(model_class, :age => 36, :status => false)
             # XXX: Cannot use `true/false`
-            hs_people = model_class.hsfind_multi_by_age_and_status([36, 0], :each_limit => 10)
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[36, 0], :each_limit => 10])
 
             expect(hs_people.size).to eql(1)
             expect(hs_people).to eql(people)
@@ -213,7 +229,7 @@ describe ActiveRecordHandlerSocket::Connection do
           it "should find records by multi condition" do
             people    = [find_all(model_class, :age => 36, :status => false), find_all(model_class, :age => 36, :status => true)].flatten
             # XXX: Cannot use `true/false`
-            hs_people = model_class.hsfind_multi_by_age_and_status([36, 0], [36, 1], :each_limit => 10)
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[36, 0], [36, 1], :each_limit => 10])
 
             expect(hs_people.size).to eql(2)
             expect(hs_people).to eql(people)
@@ -223,7 +239,7 @@ describe ActiveRecordHandlerSocket::Connection do
         context "when use not 1st sequence column" do
           it "should find records" do
             # XXX: Cannot use `true/false`
-            hs_people = model_class.hsfind_multi_by_age_and_status([0], :each_limit => 10)
+            hs_people = connection.find(model_class, :multi, :age_and_status, [[0], :each_limit => 10])
 
             expect(hs_people).to be_empty
           end
@@ -275,22 +291,22 @@ describe ActiveRecordHandlerSocket::Connection do
 
     describe "with connection" do
       before :each do
-        ActiveRecord::Base.__send__(:hs_reconnect!)
+        connection.reconnect!
       end
 
       it "should open index before find" do
         expect{
           connection.find(model_class, :first, :id, [1])
         }.not_to raise_error
-        expect(ActiveRecord::Base.__send__(:hs_indexes)[model_class.__send__(:hs_index_key, "id")][:opened]).to be
+        expect(connection.indexes[connection.index_key(model_class, :id)][:opened]).to be
       end
     end
   end
 
-  describe "hs_instantiate (after hsfind)" do
+  describe "instantiate (after hsfind)" do
     context "when valid result" do
       it "should return single record" do
-        result = model_class.__send__(:hs_instantiate, model_class.__send__(:hs_index_key, "id"), [0, [["1", "MySQL", "19", "1"]]])
+        result = connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"]]]
 
         expect(result.size).to eql(1)
 
@@ -302,7 +318,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should return multi record" do
-        result = model_class.__send__(:hs_instantiate, model_class.__send__(:hs_index_key, "id"), [0, [["1", "MySQL", "19", "1"], ["2", "%#123", "55", "0"]]])
+        result = connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"], ["2", "%#123", "55", "0"]]]
 
         expect(result.size).to eql(2)
 
@@ -323,7 +339,7 @@ describe ActiveRecordHandlerSocket::Connection do
     context "when invalid result" do
       it "should raise error" do
         expect{
-          model_class.__send__(:hs_instantiate, model_class.__send__(:hs_index_key, "id"), [2, "kpnum"])
+          connection.instantiate model_class, connection.index_key(model_class, :id), [2, "kpnum"]
         }.to raise_error(ArgumentError)
       end
     end
@@ -331,19 +347,19 @@ describe ActiveRecordHandlerSocket::Connection do
     context "when connection error" do
       before :each do
         connection.find(model_class, :first, :id, [1])
-        another_connection.find(model_class, :first, :id, [1])
+        connection.find(another_model_class, :first, :id, [1])
       end
 
       it "should raise error and mark opened_index closed" do
-        expect(model_class.__send__(:hs_indexes)[model_class.__send__(:hs_index_key, "id")][:opened]).to be
-        expect(another_model_class.__send__(:hs_indexes)[another_model_class.__send__(:hs_index_key, "id")][:opened]).to be
+        expect(connection.indexes[connection.index_key(model_class, :id)][:opened]).to be
+        expect(connection.indexes[connection.index_key(another_model_class, :id)][:opened]).to be
 
         expect{
-          model_class.__send__(:hs_instantiate, model_class.__send__(:hs_index_key, "id"), [-1, "connection lost"])
+          connection.instantiate model_class, connection.index_key(model_class, :id), [-1, "connection lost"]
         }.to raise_error(ActiveRecordHandlerSocket::ConnectionLost)
 
-        expect(model_class.__send__(:hs_indexes)[model_class.__send__(:hs_index_key, "id")][:opened]).not_to be
-        expect(another_model_class.__send__(:hs_indexes)[another_model_class.__send__(:hs_index_key, "id")][:opened]).not_to be
+        expect(connection.indexes[connection.index_key(model_class, :id)][:opened]).not_to be
+        expect(connection.indexes[connection.index_key(another_model_class, :id)][:opened]).not_to be
       end
     end
   end

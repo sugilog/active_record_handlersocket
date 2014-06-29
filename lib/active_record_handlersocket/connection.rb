@@ -160,21 +160,21 @@ module ActiveRecordHandlerSocket
           limit = options[:each_limit] || 1
           _args = args.map{|arg| [id, operator, Array(arg), limit] }
 
-          results = read_connection.execute_multi(_args)
+          results = read_connection.execute_multi _args
 
           results.map{|result|
-            hs_instantiate index_key, result
+            instantiate model, index_key, result
           }.flatten
         when :first
           result = read_connection.execute_single(id, operator, args)
-          instance = hs_instantiate index_key, result
+          instance = instantiate model, index_key, result
           instance.first
         else
           raise ArgumentError, "unknown hsfind type: #{finder}"
         end
       end
 
-      def instantiate(index_key, result_on_single)
+      def instantiate(model, index_key, result_on_single)
         signal, result = result_on_single
 
         case
@@ -184,12 +184,12 @@ module ActiveRecordHandlerSocket
 
           result.map{|record|
             attrs = Hash[ *fields.zip(record).flatten ]
-            instantiate attrs
+            model.__send__ :instantiate, attrs
           }
         when signal > 0
           raise ArgumentError, "invalid argument given: #{result}"
         else
-          hs_reset_opened_indexes
+          reset_opened_indexes
           raise ConnectionLost, result
         end
       end
@@ -244,7 +244,7 @@ module ActiveRecordHandlerSocket
           message = result == "121" ? "duplicate entry" : result
           raise ArgumentError, "invalid argument given: #{message}"
         else
-          hs_reset_opened_indexes
+          reset_opened_indexes
           raise ConnectionLost, result
         end
       end
@@ -252,6 +252,5 @@ module ActiveRecordHandlerSocket
 
     include Reader
     include Writer
-
   end
 end
