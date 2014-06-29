@@ -82,7 +82,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
   end
 
-  describe "#hscreate many" do
+  describe "#create many" do
     it "should available and countup with auto increment" do
       id = nil
 
@@ -258,7 +258,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
 
         connection.find another_model_class, :first, :id, [1]
 
-        connection.create model_class,  :name => "Test", :age => 24, :status => true
+        connection.create model_class, :name => "Test", :age => 24, :status => true
 
         connection.create another_model_class,  :person_id => 1, :title => "Test"
       end

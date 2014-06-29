@@ -25,7 +25,7 @@ module FindHelper
     }.each do |model, settings|
       settings.each do |setting|
         index_key = _connection.add_index_setting model, ActiveRecordHandlerSocket::Connection::WRITER_KEY, *setting
-        _connection.open_index model, index_key
+        _connection.open_index model, index_key, :write
       end
     end
   end
