@@ -1,15 +1,15 @@
 module ActiveRecordHandlerSocket
   module Writer
     def hscreate(attributes)
-      index_key = hs_index_writer_key
+      index_key = hs_connection.index_writer_key self
 
-      hs_open_index index_key, :write
+      hs_connection.open_index self, index_key, :write
 
-      setting = hs_fetch_key index_key
+      setting = hs_connection.fetch index_key
       id      = setting[:id]
 
       values = hs_to_a_write_values attributes, setting[:fields]
-      result = hs_write_connection.execute_insert id, values
+      result = hs_connection.write_connection.execute_insert id, values
       hs_write_result result
     end
 

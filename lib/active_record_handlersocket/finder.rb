@@ -13,28 +13,29 @@ module ActiveRecordHandlerSocket
     end
 
     def hsfind(finder, key, args)
-      index_key = hs_index_key(key)
-      setting   = hs_fetch_key(index_key)
+      index_key = hs_connection.index_key self, key
+      setting   = hs_connection.fetch index_key
 
       options  = args.extract_options!
       id       = setting[:id]
       operator = options[:operator] || "="
 
-      hs_open_index(index_key)
+      hs_connection.open_index self, index_key
 
       case finder
       when :multi
         limit = options[:each_limit] || 1
         _args = args.map{|arg| [id, operator, Array(arg), limit] }
 
-        results = hs_read_connection.execute_multi(_args)
+        results = hs_connection.read_connection.execute_multi(_args)
 
         results.map{|result|
-          hs_instantiate(index_key, result)
+          hs_instantiate index_key, result
         }.flatten
       when :first
-        result = hs_read_connection.execute_single(id, operator, args)
-        hs_instantiate(index_key, result).first
+        result = hs_connection.read_connection.execute_single(id, operator, args)
+        instance = hs_instantiate index_key, result
+        instance.first
       else
         raise ArgumentError, "unknown hsfind type: #{finder}"
       end
@@ -46,12 +47,12 @@ module ActiveRecordHandlerSocket
 
         case
         when signal == 0
-          setting = hs_fetch_key(index_key)
+          setting = hs_connection.fetch index_key
           fields  = setting[:fields]
 
           result.map{|record|
             attrs = Hash[ *fields.zip(record).flatten ]
-            instantiate(attrs)
+            instantiate attrs
           }
         when signal > 0
           raise ArgumentError, "invalid argument given: #{result}"
