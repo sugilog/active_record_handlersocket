@@ -391,7 +391,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should setting reset" do
-        expect(subject).to be_falsy
+        expect(subject).not_to be
       end
     end
 
@@ -407,7 +407,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should setting reset" do
-        expect(subject).to be_falsy
+        expect(subject).not_to be
       end
     end
   end
@@ -437,7 +437,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should return false" do
-        expect(subject).to be_falsy
+        expect(subject).not_to be
       end
     end
 
@@ -452,7 +452,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should return false" do
-        expect(subject).to be_falsy
+        expect(subject).not_to be
       end
     end
   end
@@ -497,7 +497,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
 
@@ -543,7 +543,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
 
@@ -593,7 +593,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
 
@@ -654,7 +654,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
 
@@ -678,7 +678,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
     end
@@ -762,7 +762,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
 
@@ -773,7 +773,7 @@ describe ActiveRecordHandlerSocket::Connection do
         end
 
         it do
-          expect(subject).to be_falsy
+          expect(subject).not_to be
         end
       end
     end
