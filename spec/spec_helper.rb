@@ -7,7 +7,7 @@ require File.join(spec_dir, "configuration")
 require File.join(spec_dir, "mock", "person")
 require File.join(spec_dir, "mock", "hobby")
 
-require File.join(spec_dir, "helpers", "find_helper")
+require File.join(spec_dir, "helpers", "connection_helper")
 require File.join(spec_dir, "helpers", "stub_helper")
 require File.join(spec_dir, "helpers", "warning_helper")
 
@@ -18,7 +18,7 @@ RSpec.configure do |config|
   config.mock_framework = :rspec
   config.color = true
 
-  config.include FindHelper
+  config.include ConnectionHelper
   config.include StubHelper
   config.include WarningHelper
 

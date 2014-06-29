@@ -1,4 +1,4 @@
-module FindHelper
+module ConnectionHelper
   def add_index_setting(_connection)
     {
       model_class => [
