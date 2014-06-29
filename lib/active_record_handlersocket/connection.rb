@@ -143,5 +143,115 @@ module ActiveRecordHandlerSocket
     def fetch(index_key)
       @indexes[index_key] or raise ActiveRecordHandlerSocket::UnknownIndexError, "unknown key given: #{index_key}"
     end
+
+    module Reader
+      def find(model, finder, key, args)
+        index_key = index_key model, key
+        setting   = fetch index_key
+
+        options  = args.extract_options!
+        id       = setting[:id]
+        operator = options[:operator] || "="
+
+        open_index model, index_key
+
+        case finder
+        when :multi
+          limit = options[:each_limit] || 1
+          _args = args.map{|arg| [id, operator, Array(arg), limit] }
+
+          results = read_connection.execute_multi(_args)
+
+          results.map{|result|
+            hs_instantiate index_key, result
+          }.flatten
+        when :first
+          result = read_connection.execute_single(id, operator, args)
+          instance = hs_instantiate index_key, result
+          instance.first
+        else
+          raise ArgumentError, "unknown hsfind type: #{finder}"
+        end
+      end
+
+      def instantiate(index_key, result_on_single)
+        signal, result = result_on_single
+
+        case
+        when signal == 0
+          setting = fetch index_key
+          fields  = setting[:fields]
+
+          result.map{|record|
+            attrs = Hash[ *fields.zip(record).flatten ]
+            instantiate attrs
+          }
+        when signal > 0
+          raise ArgumentError, "invalid argument given: #{result}"
+        else
+          hs_reset_opened_indexes
+          raise ConnectionLost, result
+        end
+      end
+    end
+
+    module Writer
+      def create(model, attributes)
+        index_key = index_writer_key self
+
+        open_index model, index_key, :write
+
+        setting = fetch index_key
+        id      = setting[:id]
+
+        values = to_a_write_values attributes, setting[:fields]
+        result = write_connection.execute_insert id, values
+        write_result result
+      end
+
+      def current_time_from_proper_timezone
+        time = @model_class.default_timezone == :utc ? Time.now.utc : Time.now
+        time.to_s(:db)
+      end
+
+      def to_a_write_values(attributes, fields)
+        attributes = attributes.stringify_keys
+
+        fields.inject [] do |map, field|
+          case value = attributes[field]
+          when nil
+            if /^(?:updated|created)_(?:at|on)$/ =~ field
+              value = current_time_from_proper_timezone
+            end
+          when TrueClass, FalseClass
+            value = value ? 1 : 0
+          when Time, Date
+            value = value.to_s(:db)
+          end
+
+          map.push value
+        end
+      end
+
+      def write_result(result_on_single)
+        signal, result = result_on_single
+
+        case
+        when signal == 0
+          # return PRIMARY KEY value
+          result.first.first.to_i
+        when signal > 0
+          message = result == "121" ? "duplicate entry" : result
+          raise ArgumentError, "invalid argument given: #{message}"
+        else
+          hs_reset_opened_indexes
+          raise ConnectionLost, result
+        end
+      end
+    end
+
+    include Reader
+    include Writer
+
   end
 end

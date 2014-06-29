@@ -112,4 +112,49 @@ describe ActiveRecord::Base do
       end
     end
   end
+
+  # describe "method_missing" do
+  #   it "should not overwite default method missing" do
+  #     expect(klass.find_by_id(1)).to eql(@bob)
+  #     expect(klass.find_by_age_and_status(36, false)).to eql(@bob)
+  #     expect(find_all(klass, :age => 36)).to eql([@bob, @john])
+  #   end
+  # end
+    # context "when defined by handlersocket" do
+    #   before :each do
+    #     model_class.delete_all
+    #   end
+
+    #   context "for :first" do
+    #     it "should call find with method_missing" do
+    #       expect(model_class).not_to respond_to(:hsfind_by_id)
+    #       expect(connection.find(model_class, :first, :id, [1])).to be_nil
+    #     end
+    #   end
+
+    #   context "for :multi" do
+    #     it "should call find with method_missing" do
+    #       expect(model_class).not_to respond_to(:hsfind_multi_by_id)
+    #       expect(model_class.hsfind_multi_by_id(1)).to be_empty
+    #     end
+    #   end
+    # end
+
+    # context "when before definition by handlersocket" do
+    #   context "for :first" do
+    #     it "should raise error" do
+    #       expect{
+    #         model_class.hsfind_by_name("Bob")
+    #       }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
+    #     end
+    #   end
+
+    #   context "for :multi" do
+    #     it "should raise error" do
+    #       expect{
+    #         model_class.hsfind_multi_by_name("Bob")
+    #       }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
+    #     end
+    #   end
+    # end
 end
