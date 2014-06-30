@@ -13,6 +13,12 @@ begin
 rescue LoadError
 end
 
+begin
+  require 'rspec/its'
+rescue LoadError => e
+  warn e.inspect
+end
+
 RAILS_ENV = "test"
 
 spec_dir = File.dirname(File.expand_path(__FILE__))
@@ -28,7 +34,6 @@ require File.join(spec_dir, "helpers", "warning_helper")
 
 require 'factory_girl'
 require 'database_cleaner'
-require 'rspec/its'
 
 RSpec.configure do |config|
   config.mock_framework = :rspec
