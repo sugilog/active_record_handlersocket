@@ -22,23 +22,21 @@ describe ActiveRecord::Base do
   describe ".hs_reader" do
     context "when same key from another model" do
       describe "Person:id" do
-        subject do
+        subject {
           index_key = connection.index_key klass, :id
-          setting = connection.fetch index_key
+          setting   = connection.fetch index_key
           setting[:fields]
-        end
+        }
 
-        it "should have Person columns" do
-          should eql %W[id name age status]
-        end
+        it { should eql %W[id name age status] }
       end
 
       describe "Hobby:id" do
-        subject do
+        subject {
           index_key = connection.index_key another_klass, :id
           setting = connection.fetch index_key
           setting[:fields]
-        end
+        }
 
         it "should have Hobby columns" do
           should eql %W[id person_id title]
@@ -51,11 +49,11 @@ describe ActiveRecord::Base do
         klass.hs_reader :test, "PRIMARY", :columns => %W[id name]
       end
 
-      subject do
+      subject {
         index_key = connection.index_key klass, :test
         setting = connection.fetch index_key
         setting[:fields]
-      end
+      }
 
       it "should have given columns" do
         should eql %W[id name]
@@ -66,11 +64,11 @@ describe ActiveRecord::Base do
   describe ".hs_writer" do
     context "when same key from another model" do
       describe "Person:__writer__" do
-        subject do
+        subject {
           index_key = connection.index_writer_key klass
           setting = connection.fetch index_key
           setting[:fields]
-        end
+        }
 
         it "should have Person columns" do
           should eql %W[name age status]
@@ -78,11 +76,11 @@ describe ActiveRecord::Base do
       end
 
       describe "Hobby:__writer__" do
-        subject do
+        subject {
           index_key = connection.index_writer_key another_klass
           setting = connection.fetch index_key
           setting[:fields]
-        end
+        }
 
         it "should have Hobby columns" do
           should eql %W[person_id title created_at updated_at]
@@ -95,11 +93,11 @@ describe ActiveRecord::Base do
         klass.hs_writer :columns => %W[id name]
       end
 
-      subject do
+      subject {
         index_key = connection.index_writer_key klass
         setting = connection.fetch index_key
         setting[:fields]
-      end
+      }
 
       it "should have given columns without primary key" do
         should eql %W[name]
@@ -107,24 +105,22 @@ describe ActiveRecord::Base do
     end
 
     describe "index fixed" do
-      subject do
+      subject {
         index_key = connection.index_writer_key klass
         setting = connection.fetch index_key
         setting[:index]
-      end
+      }
 
-      it do
+      it {
         should eql "PRIMARY"
-      end
+      }
     end
   end
 
   describe ".method_missing" do
     context "default behavior" do
       describe "find_by_id" do
-        subject do
-          klass.find_by_id 1
-        end
+        subject { klass.find_by_id 1 }
 
         it do
           should eql @bob
@@ -132,9 +128,7 @@ describe ActiveRecord::Base do
       end
 
       describe "find_by_age_and_status" do
-        subject do
-          klass.find_by_age_and_status 36, true
-        end
+        subject { klass.find_by_age_and_status 36, true }
 
         it do
           should eql @john
@@ -144,9 +138,7 @@ describe ActiveRecord::Base do
 
     context "call .hsfind_by_xxx" do
       describe "for id" do
-        subject do
-          klass.hsfind_by_id 1
-        end
+        subject { klass.hsfind_by_id 1 }
 
         it do
           should eql @bob
@@ -155,9 +147,7 @@ describe ActiveRecord::Base do
 
       # XXX: hsfind with true/false
       describe "for age_and_status" do
-        subject do
-          klass.hsfind_by_age_and_status 36, 1
-        end
+        subject { klass.hsfind_by_age_and_status 36, 1 }
 
         it do
           should eql @john
@@ -167,9 +157,7 @@ describe ActiveRecord::Base do
 
     context "call .hsfind_multi_by_xxx" do
       describe "for id" do
-        subject do
-          klass.hsfind_multi_by_id 1, 3
-        end
+        subject { klass.hsfind_multi_by_id 1, 3 }
 
         it do
           should eql [@bob, @john]
@@ -178,9 +166,7 @@ describe ActiveRecord::Base do
 
       # XXX: hsfind with true/false
       describe "for age_and_status" do
-        subject do
-          klass.hsfind_multi_by_age_and_status [36, 1]
-        end
+        subject { klass.hsfind_multi_by_age_and_status [36, 1] }
 
         it do
           should eql [@john]

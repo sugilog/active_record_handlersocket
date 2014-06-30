@@ -28,6 +28,7 @@ require File.join(spec_dir, "helpers", "warning_helper")
 
 require 'factory_girl'
 require 'database_cleaner'
+require 'rspec/its'
 
 RSpec.configure do |config|
   config.mock_framework = :rspec
