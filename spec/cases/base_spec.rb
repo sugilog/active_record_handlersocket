@@ -13,7 +13,13 @@ describe ActiveRecord::Base do
     ActiveRecord::Base.hs_connection
   end
 
-  describe "hs_reader" do
+  before :each do
+    @bob      = FactoryGirl.create(:bob)
+    @pharrell = FactoryGirl.create(:pharrell)
+    @john     = FactoryGirl.create(:john)
+  end
+
+  describe ".hs_reader" do
     context "when same key from another model" do
       describe "Person:id" do
         subject do
@@ -23,7 +29,7 @@ describe ActiveRecord::Base do
         end
 
         it "should have Person columns" do
-          expect(subject).to eql(%W[id name age status])
+          should eql %W[id name age status]
         end
       end
 
@@ -35,7 +41,7 @@ describe ActiveRecord::Base do
         end
 
         it "should have Hobby columns" do
-          expect(subject).to eql(%W[id person_id title])
+          should eql %W[id person_id title]
         end
       end
     end
@@ -52,12 +58,12 @@ describe ActiveRecord::Base do
       end
 
       it "should have given columns" do
-        expect(subject).to eql(%W[id name])
+        should eql %W[id name]
       end
     end
   end
 
-  describe "hs_writer" do
+  describe ".hs_writer" do
     context "when same key from another model" do
       describe "Person:__writer__" do
         subject do
@@ -67,7 +73,7 @@ describe ActiveRecord::Base do
         end
 
         it "should have Person columns" do
-          expect(subject).to eql(%W[name age status])
+          should eql %W[name age status]
         end
       end
 
@@ -79,7 +85,7 @@ describe ActiveRecord::Base do
         end
 
         it "should have Hobby columns" do
-          expect(subject).to eql(%W[person_id title created_at updated_at])
+          should eql %W[person_id title created_at updated_at]
         end
       end
     end
@@ -96,7 +102,7 @@ describe ActiveRecord::Base do
       end
 
       it "should have given columns without primary key" do
-        expect(subject).to eql(%W[name])
+        should eql %W[name]
       end
     end
 
@@ -108,18 +114,82 @@ describe ActiveRecord::Base do
       end
 
       it do
-        expect(subject).to eql("PRIMARY")
+        should eql "PRIMARY"
       end
     end
   end
 
-  # describe "method_missing" do
-  #   it "should not overwite default method missing" do
-  #     expect(klass.find_by_id(1)).to eql(@bob)
-  #     expect(klass.find_by_age_and_status(36, false)).to eql(@bob)
-  #     expect(find_all(klass, :age => 36)).to eql([@bob, @john])
-  #   end
-  # end
+  describe ".method_missing" do
+    context "default behavior" do
+      describe "find_by_id" do
+        subject do
+          klass.find_by_id 1
+        end
+
+        it do
+          should eql @bob
+        end
+      end
+
+      describe "find_by_age_and_status" do
+        subject do
+          klass.find_by_age_and_status 36, true
+        end
+
+        it do
+          should eql @john
+        end
+      end
+    end
+
+    context "call .hsfind_by_xxx" do
+      describe "for id" do
+        subject do
+          klass.hsfind_by_id 1
+        end
+
+        it do
+          should eql @bob
+        end
+      end
+
+      # XXX: hsfind with true/false
+      describe "for age_and_status" do
+        subject do
+          klass.hsfind_by_age_and_status 36, 1
+        end
+
+        it do
+          should eql @john
+        end
+      end
+    end
+
+    context "call .hsfind_multi_by_xxx" do
+      describe "for id" do
+        subject do
+          klass.hsfind_multi_by_id 1, 3
+        end
+
+        it do
+          should eql [@bob, @john]
+        end
+      end
+
+      # XXX: hsfind with true/false
+      describe "for age_and_status" do
+        subject do
+          klass.hsfind_multi_by_age_and_status [36, 1]
+        end
+
+        it do
+          should eql [@john]
+        end
+      end
+    end
+  end
+
+
     # context "when defined by handlersocket" do
     #   before :each do
     #     model_class.delete_all

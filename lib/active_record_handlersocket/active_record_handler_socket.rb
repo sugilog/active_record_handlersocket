@@ -6,19 +6,19 @@ module ActiveRecordHandlerSocket
   def self.included(c)
     c.extend Interface
 
-    connection = Connection.new c.logger
+    connection = Connection.establish_connection c.logger
     c.__send__ :cattr_accessor, :hs_connection
     c.hs_connection = connection
   end
 
   module Interface
+    def hs_reader(key, index, options = {})
+      hs_connection.add_index_setting self, key, index, options
+    end
+
     def hs_writer(options = {})
       options = options.merge :write => true
       hs_connection.add_index_setting self, ActiveRecordHandlerSocket::Connection::WRITER_KEY, "PRIMARY", options
-    end
-
-    def hs_reader(key, index, options = {})
-      hs_connection.add_index_setting self, key, index, options
     end
 
     def method_missing(method_name, *args, &block)
