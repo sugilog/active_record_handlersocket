@@ -98,7 +98,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
     end
 
     before :each do
-      10000.times do |i|
+      1000.times do |i|
         @id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
       end
     end
@@ -106,7 +106,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
     subject { @id }
 
     it { should == model_class.last.id }
-    it { should == auto_increment - 1 + 10000 }
+    it { should == auto_increment - 1 + 1000 }
   end
 
   describe "#update" do
@@ -156,6 +156,8 @@ AND    TABLE_NAME = '#{model_class.table_name}'
 
         expect(@dance.updated_at).not_to be_nil
         expect(@dance.created_at).not_to be_nil
+
+        @dance.reload
       end
 
       subject {
@@ -163,10 +165,8 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         another_model_class.find_by_id id
       }
 
-      # XXX: updated_at should change
       its(:updated_at) {
-        should be_within(2).of(Time.now)
-        should_not eql @dance.updated_at
+        should eql @dance.updated_at
       }
 
       its(:created_at) {
@@ -175,37 +175,25 @@ AND    TABLE_NAME = '#{model_class.table_name}'
     end
   end
 
-  # describe "#update many" do
-  #   it "should available and countup with auto increment" do
-  #     id = nil
+  describe "#update many" do
+    before :each do
+      id = nil
 
-  #     auto_increment = model_class.connection.__send__(:select, <<-SQL).to_a.first["AUTO_INCREMENT"]
-# SELECT AUTO_INCREMENT
-# FROM   INFORMATION_SCHEMA.TABLES
-# WHERE  TABLE_SCHEMA = '#{model_class.configurations[RAILS_ENV][:database]}'
-# AND    TABLE_NAME = '#{model_class.table_name}'
-  #     SQL
+      1000.times do |i|
+        id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
+      end
 
-  #     10000.times do |i|
-  #       id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
-  #     end
+      @count = model_class.count
 
-  #     expect(id).to == model_class.last.id
-  #     expect(id).to == auto_increment - 1 + 10000
-  #   end
-  # end
+      1000.times do |i|
+        connection.update model_class, id - 1000 + i, :name => "Update#{i}", :age => i, :status => rand(2).zero?
+      end
+    end
 
+    subject { @count }
 
-
-
-
-
-
-
-
-
-
-
+    it { should == model_class.count }
+  end
 
   describe "#current_time_from_proper_timezone" do
     before :each do

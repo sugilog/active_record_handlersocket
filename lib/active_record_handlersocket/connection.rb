@@ -232,7 +232,7 @@ module ActiveRecordHandlerSocket
         time.to_s(:db)
       end
 
-      def to_a_write_values(attributes, fields)
+      def to_a_write_values(attributes, fields, on = :create)
         attributes = attributes.stringify_keys
 
         fields.inject [] do |map, field|
