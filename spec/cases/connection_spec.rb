@@ -743,10 +743,10 @@ describe ActiveRecordHandlerSocket::Connection do
     describe "attributes" do
       subject { @setting }
 
-      its [:id]     { should be_kind_of Fixnum }
-      its [:index]  { should eql "PRIMARY" }
-      its [:fields] { should eql %W[id name age status] }
-      its [:opened] { should be }
+      its([:id])     { should be_kind_of Fixnum }
+      its([:index])  { should eql "PRIMARY" }
+      its([:fields]) { should eql %W[id name age status] }
+      its([:opened]) { should be }
     end
 
     context "when key but not a index_key given" do
