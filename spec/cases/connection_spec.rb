@@ -146,9 +146,11 @@ describe ActiveRecordHandlerSocket::Connection do
     end
 
     context "with unknown" do
-      subject { connection.establish_connection :unknown }
-
-      it { should raise_error ArgumentError }
+      it { 
+        expect {
+          connection.establish_connection :unknown
+        }.to raise_error ArgumentError
+      }
     end
   end
 
@@ -749,7 +751,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "when key but not a index_key given" do
       it "should raise error" do
-        expect{
+        expect {
           connection.fetch :id
         }.to raise_error ActiveRecordHandlerSocket::UnknownIndexError
       end
@@ -757,7 +759,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
     context "when unknown key given" do
       it "should raise error" do
-        expect{
+        expect {
           connection.fetch :unknown
         }.to raise_error ActiveRecordHandlerSocket::UnknownIndexError
       end

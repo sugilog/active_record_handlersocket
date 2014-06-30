@@ -25,10 +25,10 @@ describe ActiveRecordHandlerSocket::Connection do
     add_index_setting connection
   end
 
-  describe "#create" do
+  describe "#insert" do
     context "with given attributes" do
       it "should callable" do
-        id = connection.create model_class, :name => "Test", :age => 24, :status => true
+        id = connection.insert model_class, :name => "Test", :age => 24, :status => true
         record = model_class.find_by_id id
 
         expect(record.name).to eql("Test")
@@ -39,14 +39,14 @@ describe ActiveRecordHandlerSocket::Connection do
       # After handlersocket version up (over 0.0.2) nil will be supported.
       it "should callable but having nil" do
         expect{
-          id = connection.create model_class, :name => "Test", :age => 24, :status => nil
+          id = connection.insert model_class, :name => "Test", :age => 24, :status => nil
         }.to raise_error(TypeError)
       end
     end
 
     context "with unique index" do
       it "should saved first time" do
-        id = connection.create another_model_class, :person_id => 1, :title => "Hobby"
+        id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
         record = another_model_class.find_by_id id
 
         expect(record.person_id).to eql(1)
@@ -54,17 +54,17 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should raise error" do
-        connection.create another_model_class, :person_id => 1, :title => "Hobby"
+        connection.insert another_model_class, :person_id => 1, :title => "Hobby"
 
         expect{
-          connection.create another_model_class, :person_id => 1, :title => "Hobby"
+          connection.insert another_model_class, :person_id => 1, :title => "Hobby"
         }.to raise_error(ArgumentError)
       end
     end
 
     context "with timestamp" do
       it "should fill updated_at" do
-        id = connection.create another_model_class, :person_id => 1, :title => "Hobby"
+        id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
 
         record = another_model_class.find_by_id id
 
@@ -72,7 +72,7 @@ describe ActiveRecordHandlerSocket::Connection do
       end
 
       it "should fill created_at" do
-        id = connection.create another_model_class, :person_id => 1, :title => "Hobby"
+        id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
 
         record = another_model_class.find_by_id id
 
@@ -82,7 +82,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
   end
 
-  describe "#create many" do
+  describe "#insert many" do
     it "should available and countup with auto increment" do
       id = nil
 
@@ -94,7 +94,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
       SQL
 
       10000.times do |i|
-        id = connection.create model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
+        id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
       end
 
       expect(id).to eql(model_class.last.id)
@@ -253,14 +253,14 @@ AND    TABLE_NAME = '#{model_class.table_name}'
       before :each do
         connection.reconnect!
 
-        connection.find model_class, :first, :id, [1]
-        connection.find model_class, :first, :age_and_status, [36, 0]
+        connection.select model_class, :first, :id, [1]
+        connection.select model_class, :first, :age_and_status, [36, 0]
 
-        connection.find another_model_class, :first, :id, [1]
+        connection.select another_model_class, :first, :id, [1]
 
-        connection.create model_class, :name => "Test", :age => 24, :status => true
+        connection.insert model_class, :name => "Test", :age => 24, :status => true
 
-        connection.create another_model_class,  :person_id => 1, :title => "Test"
+        connection.insert another_model_class,  :person_id => 1, :title => "Test"
       end
 
       after :each do

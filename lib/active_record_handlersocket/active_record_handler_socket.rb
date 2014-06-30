@@ -34,11 +34,11 @@ module ActiveRecordHandlerSocket
     end
 
     def hsfind(finder, key, args)
-      hs_connection.find self, finder, key, args
+      hs_connection.select self, finder, key, args
     end
 
     def hscreate(attributes)
-      hs_connection.create self, attributes
+      hs_connection.insert self, attributes
     end
   end
 end

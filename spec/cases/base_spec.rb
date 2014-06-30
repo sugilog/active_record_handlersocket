@@ -184,7 +184,7 @@ describe ActiveRecord::Base do
     #   context "for :first" do
     #     it "should call find with method_missing" do
     #       expect(model_class).not_to respond_to(:hsfind_by_id)
-    #       expect(connection.find(model_class, :first, :id, [1])).to be_nil
+    #       expect(connection.select(model_class, :first, :id, [1])).to be_nil
     #     end
     #   end
 

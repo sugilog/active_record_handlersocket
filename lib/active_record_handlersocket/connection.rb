@@ -145,7 +145,7 @@ module ActiveRecordHandlerSocket
     end
 
     module Reader
-      def find(model, finder, key, args)
+      def select(model, finder, key, args)
         index_key = index_key model, key
         setting   = fetch index_key
 
@@ -196,7 +196,7 @@ module ActiveRecordHandlerSocket
     end
 
     module Writer
-      def create(model, attributes)
+      def insert(model, attributes)
         index_key = index_writer_key model
 
         open_index model, index_key, :write
