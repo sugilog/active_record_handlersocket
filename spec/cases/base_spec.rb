@@ -175,42 +175,35 @@ describe ActiveRecord::Base do
     end
   end
 
+  describe ".hsfind" do
+    it
+  end
 
-    # context "when defined by handlersocket" do
-    #   before :each do
-    #     model_class.delete_all
-    #   end
+  describe ".hscreate" do
+    it
+  end
 
-    #   context "for :first" do
-    #     it "should call find with method_missing" do
-    #       expect(model_class).not_to respond_to(:hsfind_by_id)
-    #       expect(connection.select(model_class, :first, :id, [1])).to be_nil
-    #     end
-    #   end
+  describe ".hsupdate" do
+    it
+  end
 
-    #   context "for :multi" do
-    #     it "should call find with method_missing" do
-    #       expect(model_class).not_to respond_to(:hsfind_multi_by_id)
-    #       expect(model_class.hsfind_multi_by_id(1)).to be_empty
-    #     end
-    #   end
-    # end
+  describe ".hsdelete" do
+    it
+  end
 
-    # context "when before definition by handlersocket" do
-    #   context "for :first" do
-    #     it "should raise error" do
-    #       expect{
-    #         model_class.hsfind_by_name("Bob")
-    #       }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
-    #     end
-    #   end
+  describe "#hssave" do
+    it
+  end
 
-    #   context "for :multi" do
-    #     it "should raise error" do
-    #       expect{
-    #         model_class.hsfind_multi_by_name("Bob")
-    #       }.to raise_error(ActiveRecordHandlerSocket::UnknownIndexError)
-    #     end
-    #   end
-    # end
+  describe "#hscreate" do
+    it
+  end
+
+  describe "#hsudpate" do
+    it
+  end
+
+  describe "hsdestroy" do
+    it
+  end
 end
