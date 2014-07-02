@@ -113,14 +113,15 @@ describe ActiveRecordHandlerSocket::Connection do
       it { should be_kind_of HandlerSocket }
 
       describe ":@current_config" do
+        let :config do
+          _config = connection.connection_config :read
+          _config.slice :host, :port
+        end
+
         subject { connection.read_connection.instance_variable_get(:@_current_config) }
 
-        it "should have current_config" do
-          config = connection.connection_config :read
-          config = config.slice :host, :port
-
-          should eql config
-        end
+        its([:host]) { should eql config[:host] }
+        its([:port]) { should eql config[:port] }
       end
     end
 
@@ -134,14 +135,15 @@ describe ActiveRecordHandlerSocket::Connection do
       it { should be_kind_of HandlerSocket }
 
       describe ":@current_config" do
+        let :config do
+          _config = connection.connection_config :write
+          _config.slice :host, :port
+        end
+
         subject { connection.write_connection.instance_variable_get(:@_current_config) }
 
-        it "should have current_config" do
-          config = connection.connection_config :write
-          config = config.slice :host, :port
-
-          should eql config
-        end
+        its([:host]) { should eql config[:host] }
+        its([:port]) { should eql config[:port] }
       end
     end
 
@@ -489,15 +491,27 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#connection_config" do
     context :read do
+      let :base_config do
+        ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"].symbolize_keys
+      end
+
       subject { connection.connection_config :read }
 
-      it { should eql ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_read"].symbolize_keys }
+      its([:host])     { should eql base_config[:host] }
+      its([:port])     { should eql base_config[:port] }
+      its([:database]) { should eql base_config[:database] }
     end
 
     context :write do
+      let :base_config do
+        ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_write"].symbolize_keys
+      end
+
       subject { connection.connection_config :write }
 
-      it { should eql ActiveRecord::Base.configurations["#{RAILS_ENV}_hs_write"].symbolize_keys }
+      its([:host])     { should eql base_config[:host] }
+      its([:port])     { should eql base_config[:port] }
+      its([:database]) { should eql base_config[:database] }
     end
   end
 
@@ -602,7 +616,10 @@ describe ActiveRecordHandlerSocket::Connection do
 
       subject { connection.fetch index_key }
 
-      it { should eql setting }
+      its([:id])     { should eql setting[:id] }
+      its([:index])  { should eql setting[:index] }
+      its([:fields]) { should eql setting[:fields] }
+      its([:opened]) { should eql setting[:opened] }
 
       context "with write option" do
         before :each do
@@ -621,7 +638,10 @@ describe ActiveRecordHandlerSocket::Connection do
 
         subject { connection.fetch index_key }
 
-        it { should eql setting }
+        its([:id])     { should eql setting[:id] }
+        its([:index])  { should eql setting[:index] }
+        its([:fields]) { should eql setting[:fields] }
+        its([:opened]) { should eql setting[:opened] }
       end
 
       context "with empty columns" do
@@ -666,7 +686,10 @@ describe ActiveRecordHandlerSocket::Connection do
 
       subject { connection.fetch index_key }
 
-      it { should eql setting }
+      its([:id])     { should eql setting[:id] }
+      its([:index])  { should eql setting[:index] }
+      its([:fields]) { should eql setting[:fields] }
+      its([:opened]) { should eql setting[:opened] }
 
       context "with write option" do
         before :each do
@@ -685,7 +708,10 @@ describe ActiveRecordHandlerSocket::Connection do
 
         subject { connection.fetch index_key }
 
-        it { should eql setting }
+        its([:id])     { should eql setting[:id] }
+        its([:index])  { should eql setting[:index] }
+        its([:fields]) { should eql setting[:fields] }
+        its([:opened]) { should eql setting[:opened] }
       end
     end
 
