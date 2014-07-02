@@ -73,82 +73,100 @@ describe ActiveRecordHandlerSocket::Connection do
 
     describe "select with options" do
       context "for :single" do
-        context "with operator option" do
-          it "should select greater value record" do
-            hs_person = connection.select(model_class, :first, :id, [0, {:operator => ">"}])
+        context "with '>' operator option" do
+          describe "record exists" do
+            subject { connection.select model_class, :first, :id, [0, {:operator => ">"}] }
 
-            expect(hs_person).to be_kind_of(model_class)
-
-            hs_person = connection.select(model_class, :first, :id, [3, {:operator => ">"}])
-
-            expect(hs_person).to be_nil
+            it { should be_kind_of model_class }
           end
 
-          it "should select less value record" do
-            person    = model_class.find_by_id(2)
-            hs_person = connection.select(model_class, :first, :id, [3, {:operator => "<"}])
+          describe "record not found" do
+            subject { connection.select model_class, :first, :id, [3, {:operator => ">"}] }
 
-            expect(hs_person).not_to be_nil
-            expect(hs_person).to eql(person)
+            it { should be_nil }
+          end
+        end
 
-            hs_person = connection.select(model_class, :first, :id, [0, {:operator => "<"}])
+        context "with '<' operator option" do
+          describe "record exists" do
+            let :person do
+              model_class.find_by_id 2
+            end
 
-            expect(hs_person).to be_nil
+            subject { connection.select model_class, :first, :id, [3, {:operator => "<"}] }
+
+            it { should be_kind_of model_class }
+            it { should eql person }
+          end
+
+          describe "record not found" do
+            subject { connection.select model_class, :first, :id, [0, {:operator => "<"}] }
+
+            it { should be_nil }
           end
         end
 
         context "with each_limit option" do
-          it "should ignore each_limit option" do
-            person    = model_class.find_by_id(2)
-            hs_person = connection.select(model_class, :first, :id, [3, {:operator => "<", :each_limit => 10}])
-
-            expect(hs_person).not_to be_nil
-            expect(hs_person).to eql(person)
-            expect(hs_person).not_to be_kind_of(Array)
+          let :person do
+            model_class.find_by_id 2
           end
+
+          subject { connection.select model_class, :first, :id, [3, {:operator => "<", :each_limit => 10}] }
+
+          it { should_not be_nil }
+          it { should eql person }
+          it { should_not be_kind_of Array }
         end
       end
 
       context "for :multi" do
-        context "with operator option" do
-          it "should select greater value record" do
-            hs_people = connection.select(model_class, :multi, :id, [0, {:operator => ">"}])
+        context "with '>' operator option" do
+          describe "records exists" do
+            subject { connection.select model_class, :multi, :id, [0, {:operator => ">"}] }
 
-            expect(hs_people.size).to  eql(1)
-            expect(hs_people.first).to be_kind_of(model_class)
-
-            hs_people = connection.select(model_class, :multi, :id, [3, {:operator => ">"}])
-
-            expect(hs_people).to be_empty
+            its(:size)  { should eql 1 }
+            its(:first) { should be_kind_of model_class }
           end
 
-          it "should select less value record" do
-            people    = find_all(model_class, :id => 2)
-            hs_people = connection.select(model_class, :multi, :id, [3, {:operator => "<"}])
+          describe "records not found" do
+            subject { connection.select model_class, :multi, :id, [3, {:operator => ">"}] }
 
-            expect(hs_people).to eql(people)
+            it { should be_empty }
+          end
+        end
 
-            hs_people = connection.select(model_class, :multi, :id, [0, {:operator => "<"}])
+        context "with '<' operator option" do
+          describe "records exists" do
+            let :people do
+              find_all model_class, :id => 2
+            end
 
-            expect(hs_people).to be_empty
+            subject { connection.select model_class, :multi, :id, [3, {:operator => "<"}] }
+
+            it { should eql people }
+          end
+
+          describe "records not found" do
+            subject { connection.select model_class, :multi, :id, [0, {:operator => "<"}] }
+
+            it { should be_empty }
           end
         end
 
         context "with each_limit option" do
-          it "should select greater value records" do
-            people    = find_all(model_class, :id => [1, 2, 3])
-            hs_people = connection.select(model_class, :multi, :id, [0, {:operator => ">", :each_limit => 10}])
-
-            expect(hs_people).to eql(people)
+          let :people do
+            find_all model_class, :id => [1, 2, 3]
           end
+
+          subject { connection.select model_class, :multi, :id, [0, {:operator => ">", :each_limit => 10}] }
+
+          it { should eql people }
         end
 
         context "with discarded limit option" do
-          it "should ignore option" do
-            hs_people = connection.select(model_class, :multi, :id, [0, {:operator => ">", :limit => 10}])
+          subject { connection.select model_class, :multi, :id, [0, {:operator => ">", :limit => 10}] }
 
-            expect(hs_people).to eql([@bob])
-          end
+          it { should eql [@bob] }
         end
       end
     end
@@ -156,33 +174,31 @@ describe ActiveRecordHandlerSocket::Connection do
     describe "with multi column index" do
       context "for :single" do
         context "when use 1st sequence column" do
-          it "should select record" do
-            person    = model_class.find_by_age(36)
-            hs_person = connection.select(model_class, :first, :age_and_status, [36])
-
-            expect(hs_person).not_to be_nil
-            expect(hs_person).to eql(person)
+          let :person do
+            model_class.find_by_age(36)
           end
+
+          subject { connection.select model_class, :first, :age_and_status, [36] }
+
+          it { should eql person }
         end
 
         context "when use all sequence columns" do
-          it "should select record" do
-            person    = model_class.find_by_age_and_status(36, false)
-            # XXX: Cannot use `true/false`
-            hs_person = connection.select(model_class, :first, :age_and_status, [36, 0])
-
-            expect(hs_person).not_to be_nil
-            expect(hs_person).to eql(person)
+          let :person do
+            model_class.find_by_age_and_status 36, false
           end
+
+          # XXX: Cannot use `true/false`
+          subject { connection.select model_class, :first, :age_and_status, [36, 0] }
+
+          it { should eql person }
         end
 
         context "when use not 1st sequence column" do
-          it "should not select record" do
-            # XXX: Cannot use `true/false`
-            hs_person = connection.select(model_class, :first, :age_and_status, [0])
+          # XXX: Cannot use `true/false`
+          subject { connection.select model_class, :first, :age_and_status, [0] }
 
-            expect(hs_person).to be_nil
-          end
+          it { should be_nil }
         end
       end
 

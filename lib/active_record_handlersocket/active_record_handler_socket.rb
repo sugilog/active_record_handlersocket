@@ -6,6 +6,8 @@ module ActiveRecordHandlerSocket
   def self.included(c)
     c.extend ClassMethods
     c.__send__ :include, InstanceMethods
+    c.__send__ :include, PrivateInstanceMethods
+    c.__send__ :private, *PrivateInstanceMethods.instance_methods(false)
 
     connection = Connection.establish_connection c.logger
     c.__send__ :cattr_accessor, :hs_connection
@@ -66,10 +68,13 @@ module ActiveRecordHandlerSocket
     end
 
     def hscreate
-      case
-      when false == run_callback(:before_create)
-        false
-      when result = self.class.hscreate(self.attributes)
+      if false == run_callback(:before_create)
+        return false
+      end
+
+      hs_set_timestamps_on_create
+
+      if result = self.class.hscreate(self.attributes)
         self.id = result
         self.instance_variable_set :@new_record, false
         run_callback :after_create
@@ -80,10 +85,13 @@ module ActiveRecordHandlerSocket
     end
 
     def hsupdate
-      case
-      when false == run_callback(:before_update)
-        callback_result
-      when self.class.hsupdate(self.id, self.attributes)
+      if false == run_callback(:before_update)
+        return false
+      end
+
+      hs_set_timestamps_on_update
+
+      if self.class.hsupdate(self.id, self.attributes)
         run_callback :after_update
         true
       else
@@ -92,14 +100,44 @@ module ActiveRecordHandlerSocket
     end
 
     def hsdestroy
-      case
-      when false == run_callback(:before_destroy)
-        callback_result
-      when self.class.hsdelete(self.id)
+      if false == run_callback(:before_destroy)
+        return false
+      end
+
+      if self.class.hsdelete(self.id)
         run_callback :after_destroy
         true
       else
         false
+      end
+    end
+  end
+
+  # no test
+  module PrivateInstanceMethods
+    # ref: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/timestamp.rb
+    def hs_set_timestamps_on_create
+      if self.record_timestamps
+        current_time = current_time_from_proper_timezone
+
+        all_timestamp_attributes.each do |column|
+          if respond_to?(column) && respond_to?("#{column}=") && self.__send__(column).nil?
+            write_attribute column.to_s, current_time
+          end
+        end
+      end
+    end
+
+    # ref: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/timestamp.rb
+    def hs_set_timestamps_on_update
+      if self.record_timestamps
+        current_time = current_time_from_proper_timezone
+
+        timestamp_attributes_for_update do |column|
+          column = column.to_s
+          next if attributes_changed? column
+          write_attribute column, current_time
+        end
       end
     end
   end

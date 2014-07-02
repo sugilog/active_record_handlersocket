@@ -265,6 +265,10 @@ describe ActiveRecordHandlerSocket::Connection do
         connection.read_connection.close
       end
 
+      after :each do
+        connection.reconnect!
+      end
+
       it "should return false" do
         expect(subject).not_to be
       end
@@ -274,8 +278,11 @@ describe ActiveRecordHandlerSocket::Connection do
       subject { connection.active? }
 
       before :each do
-        # open index
         connection.write_connection.close
+      end
+
+      after :each do
+        connection.reconnect!
       end
 
       it "should return false" do
