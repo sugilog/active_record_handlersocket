@@ -5,3 +5,4 @@ pkg/*
 vendor
 log
 coverage/*
+tmp
