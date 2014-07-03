@@ -57,55 +57,48 @@ module ActiveRecordHandlerSocket
   # no test
   module InstanceMethods
     def hssave(validation = true)
-      case
-      when validation && !valid?
-        false
-      when new_record?
-        hscreate
+      if new_record?
+        hscreate(validation)
       else
-        hsupdate
+        hsupdate(validation)
       end
     end
 
-    def hscreate
-      if false == run_callback(:before_create)
+    def hscreate(validation = true)
+      if validation && !valid?
         return false
       end
 
-      hs_set_timestamps_on_create
-
-      if result = self.class.hscreate(self.attributes)
-        self.id = result
-        self.instance_variable_set :@new_record, false
-        run_callback :after_create
-        !!id
-      else
-        false
+      run_callbacks :create do
+        hs_set_timestamps_on_create
+        if result = self.class.hscreate(self.attributes)
+          self.id = result
+          self.instance_variable_set :@new_record, false
+          !!id
+        else
+          false
+        end
       end
     end
 
-    def hsupdate
-      if false == run_callback(:before_update)
+    def hsupdate(validation = true)
+      if validation && !valid?
         return false
       end
 
-      hs_set_timestamps_on_update
-
-      if self.class.hsupdate(self.id, self.attributes)
-        run_callback :after_update
-        true
-      else
-        false
+      run_callbacks :update do
+        hs_set_timestamps_on_update
+        !!self.class.hsupdate(self.id, self.attributes)
       end
     end
 
     def hsdestroy
-      if false == run_callback(:before_destroy)
+      if false == run_callbacks(:before_destroy)
         return false
       end
 
       if self.class.hsdelete(self.id)
-        run_callback :after_destroy
+        run_callbacks :after_destroy
         true
       else
         false
@@ -130,12 +123,12 @@ module ActiveRecordHandlerSocket
 
     # ref: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/timestamp.rb
     def hs_set_timestamps_on_update
-      if self.record_timestamps
+      if should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
-        timestamp_attributes_for_update do |column|
+        timestamp_attributes_for_update_in_model.each do |column|
           column = column.to_s
-          next if attributes_changed? column
+          next if attribute_changed? column
           write_attribute column, current_time
         end
       end
