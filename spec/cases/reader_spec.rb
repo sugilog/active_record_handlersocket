@@ -28,45 +28,40 @@ describe ActiveRecordHandlerSocket::Connection do
   describe "#select" do
     context "when records exist" do
       context "for :first" do
-        it "should get one record by id" do
-          person    = model_class.find_by_id(1)
-          hs_person = connection.select(model_class, :first, :id, [1])
-
-          expect(hs_person).not_to be_nil
-          expect(hs_person).to eql(person)
+        describe "should get one record by id" do
+          let(:person) { model_class.find_by_id 1 }
+          subject      { connection.select model_class, :first, :id, [1] }
+          it           { should_not be_nil }
+          it           { should eql person }
         end
 
-        it "should get nil by unknown id" do
-          person    = model_class.find_by_id(9)
-          hs_person = connection.select(model_class, :first, :id, [9])
-
-          expect(person).to be_nil
-          expect(hs_person).to be_nil
+        describe "should get nil by unknown id" do
+          let(:person) { model_class.find_by_id 9 }
+          subject      { connection.select model_class, :first, :id, [9] }
+          it           { should be_nil }
+          it           { should eql person }
         end
       end
 
       context "for :multi" do
-        it "should get one record by id" do
-          person    = find_all(model_class, :id => 1)
-          hs_person = connection.select(model_class, :multi, :id, [1])
-
-          expect(hs_person.size).to eql(1)
-          expect(hs_person).to eql(person)
+        describe "should get one record by id" do
+          let(:person) { find_all model_class, :id => 1 }
+          subject      { connection.select model_class, :multi, :id, [1] }
+          its(:size)   { should eql 1 }
+          it           { should eql person }
         end
 
-        it "should get some records by ids" do
-          people    = find_all(model_class, :id => [1, 2])
-          hs_people = connection.select(model_class, :multi, :id, [1, 2])
-
-          expect(hs_people).to eql(people)
+        describe "should get some records by ids" do
+          let(:people) { find_all model_class, :id => [1, 2] }
+          subject      { connection.select model_class, :multi, :id, [1, 2] }
+          it           { should eql people }
         end
 
-        it "should get empty array by unknown id" do
-          people    = find_all(model_class, :id => 9)
-          hs_people = connection.select(model_class, :multi, :id, [9])
-
-          expect(people).to be_empty
-          expect(hs_people).to be_empty
+        describe "should get empty array by unknown id" do
+          let(:people) { find_all model_class, :id => 9 }
+          subject      { connection.select model_class, :multi, :id, [9] }
+          it           { should be_empty }
+          it           { should eql people }
         end
       end
     end
@@ -76,43 +71,32 @@ describe ActiveRecordHandlerSocket::Connection do
         context "with '>' operator option" do
           describe "record exists" do
             subject { connection.select model_class, :first, :id, [0, {:operator => ">"}] }
-
-            it { should be_kind_of model_class }
+            it      { should be_kind_of model_class }
           end
 
           describe "record not found" do
             subject { connection.select model_class, :first, :id, [3, {:operator => ">"}] }
-
-            it { should be_nil }
+            it      { should be_nil }
           end
         end
 
         context "with '<' operator option" do
           describe "record exists" do
-            let :person do
-              model_class.find_by_id 2
-            end
-
-            subject { connection.select model_class, :first, :id, [3, {:operator => "<"}] }
-
-            it { should be_kind_of model_class }
-            it { should eql person }
+            let(:person) { model_class.find_by_id 2 }
+            subject      { connection.select model_class, :first, :id, [3, {:operator => "<"}] }
+            it           { should be_kind_of model_class }
+            it           { should eql person }
           end
 
           describe "record not found" do
             subject { connection.select model_class, :first, :id, [0, {:operator => "<"}] }
-
-            it { should be_nil }
+            it      { should be_nil }
           end
         end
 
         context "with each_limit option" do
-          let :person do
-            model_class.find_by_id 2
-          end
-
-          subject { connection.select model_class, :first, :id, [3, {:operator => "<", :each_limit => 10}] }
-
+          let(:person) { model_class.find_by_id 2 }
+          subject      { connection.select model_class, :first, :id, [3, {:operator => "<", :each_limit => 10}] }
           it { should_not be_nil }
           it { should eql person }
           it { should_not be_kind_of Array }
@@ -122,51 +106,39 @@ describe ActiveRecordHandlerSocket::Connection do
       context "for :multi" do
         context "with '>' operator option" do
           describe "records exists" do
-            subject { connection.select model_class, :multi, :id, [0, {:operator => ">"}] }
-
+            subject     { connection.select model_class, :multi, :id, [0, {:operator => ">"}] }
             its(:size)  { should eql 1 }
             its(:first) { should be_kind_of model_class }
           end
 
           describe "records not found" do
             subject { connection.select model_class, :multi, :id, [3, {:operator => ">"}] }
-
-            it { should be_empty }
+            it      { should be_empty }
           end
         end
 
         context "with '<' operator option" do
           describe "records exists" do
-            let :people do
-              find_all model_class, :id => 2
-            end
-
-            subject { connection.select model_class, :multi, :id, [3, {:operator => "<"}] }
-
-            it { should eql people }
+            let(:people) { find_all model_class, :id => 2 }
+            subject      { connection.select model_class, :multi, :id, [3, {:operator => "<"}] }
+            it           { should eql people }
           end
 
           describe "records not found" do
             subject { connection.select model_class, :multi, :id, [0, {:operator => "<"}] }
-
-            it { should be_empty }
+            it      { should be_empty }
           end
         end
 
         context "with each_limit option" do
-          let :people do
-            find_all model_class, :id => [1, 2, 3]
-          end
-
-          subject { connection.select model_class, :multi, :id, [0, {:operator => ">", :each_limit => 10}] }
-
-          it { should eql people }
+          let(:people) { find_all model_class, :id => [1, 2, 3] }
+          subject      { connection.select model_class, :multi, :id, [0, {:operator => ">", :each_limit => 10}] }
+          it           { should eql people }
         end
 
         context "with discarded limit option" do
           subject { connection.select model_class, :multi, :id, [0, {:operator => ">", :limit => 10}] }
-
-          it { should eql [@bob] }
+          it      { should eql [@bob] }
         end
       end
     end
@@ -174,119 +146,93 @@ describe ActiveRecordHandlerSocket::Connection do
     describe "with multi column index" do
       context "for :single" do
         context "when use 1st sequence column" do
-          let :person do
-            model_class.find_by_age(36)
-          end
-
-          subject { connection.select model_class, :first, :age_and_status, [36] }
-
-          it { should eql person }
+          let(:person) { model_class.find_by_age 36 }
+          subject      { connection.select model_class, :first, :age_and_status, [36] }
+          it           { should eql person }
         end
 
         context "when use all sequence columns" do
-          let :person do
-            model_class.find_by_age_and_status 36, false
-          end
-
+          let(:person) { model_class.find_by_age_and_status 36, false }
           # XXX: Cannot use `true/false`
-          subject { connection.select model_class, :first, :age_and_status, [36, 0] }
-
-          it { should eql person }
+          subject      { connection.select model_class, :first, :age_and_status, [36, 0] }
+          it           { should eql person }
         end
 
         context "when use not 1st sequence column" do
           # XXX: Cannot use `true/false`
           subject { connection.select model_class, :first, :age_and_status, [0] }
-
-          it { should be_nil }
+          it      { should be_nil }
         end
       end
 
       context "for :multi" do
         context "when use 1st sequence column" do
-          it "should select records" do
-            people    = find_all(model_class, :age => 36)
-            hs_people = connection.select(model_class, :multi, :age_and_status, [36, {:each_limit => 10}])
+          let(:people) { find_all model_class, :age => 36 }
 
-            expect(hs_people.size).to eql(2)
-            expect(hs_people).to eql(people)
+          describe "should select records" do
+            subject      { connection.select model_class, :multi, :age_and_status, [36, {:each_limit => 10}] }
+            its(:size)   { should eql 2 }
+            it           { should eql people }
+          end
 
-            hs_people = connection.select(model_class, :multi, :age_and_status, [[36], {:each_limit => 10}])
-
-            expect(hs_people.size).to eql(2)
-            expect(hs_people).to eql(people)
+          describe "should select records by array assign" do
+            subject    { connection.select model_class, :multi, :age_and_status, [[36], {:each_limit => 10}] }
+            its(:size) { should eql 2 }
+            it         { should eql people }
           end
         end
 
         context "when use all sequence columns" do
-          it "should select records" do
-            people    = find_all(model_class, :age => 36, :status => false)
+          describe "should select records" do
+            let(:people) { find_all model_class, :age => 36, :status => false }
             # XXX: Cannot use `true/false`
-            hs_people = connection.select(model_class, :multi, :age_and_status, [[36, 0], {:each_limit => 10}])
-
-            expect(hs_people.size).to eql(1)
-            expect(hs_people).to eql(people)
+            subject      { connection.select model_class, :multi, :age_and_status, [[36, 0], {:each_limit => 10}] }
+            its(:size)   { should eql 1 }
+            it           { should eql people }
           end
 
-          it "should select records by multi condition" do
-            people    = [find_all(model_class, :age => 36, :status => false), find_all(model_class, :age => 36, :status => true)].flatten
+          describe "should select records by multi condition" do
+            let(:people) { [find_all(model_class, :age => 36, :status => false), find_all(model_class, :age => 36, :status => true)].flatten }
             # XXX: Cannot use `true/false`
-            hs_people = connection.select(model_class, :multi, :age_and_status, [[36, 0], [36, 1], {:each_limit => 10}])
-
-            expect(hs_people.size).to eql(2)
-            expect(hs_people).to eql(people)
+            subject      { connection.select model_class, :multi, :age_and_status, [[36, 0], [36, 1], {:each_limit => 10}] }
+            its(:size)   { should eql 2 }
+            it           { should eql people }
           end
         end
 
         context "when use not 1st sequence column" do
-          it "should select records" do
-            # XXX: Cannot use `true/false`
-            hs_people = connection.select(model_class, :multi, :age_and_status, [[0], {:each_limit => 10}])
-
-            expect(hs_people).to be_empty
-          end
+          subject { connection.select model_class, :multi, :age_and_status, [[0], {:each_limit => 10}] }
+          it      { should be_empty }
         end
       end
     end
 
     describe "with active_record callbacks" do
       context "for :single" do
-        it "should work after_find callback" do
-          hs_person = connection.select(model_class, :first, :id, [1])
-          expect(hs_person.born_year).to eql(Time.now.year - hs_person.age)
-          expect(hs_person.instance_variable_get(:@born_year)).to eql(hs_person.born_year)
+        describe "should work after_find callback" do
+          subject         { connection.select model_class, :first, :id, [1] }
+          its(:born_year) { should eql Time.now.year - subject.age }
         end
 
-        it "should work after_initialize callback" do
-          hs_person = connection.select(model_class, :first, :id, [1])
-          expect(hs_person.family_name).to eql(hs_person.name.split(" ").last)
-          expect(hs_person.instance_variable_get(:@family_name)).to eql(hs_person.family_name)
+        describe "should work after_initialize callback" do
+          subject           { connection.select model_class, :first, :id, [1] }
+          its(:family_name) { should eql subject.name.split(" ").last }
         end
       end
 
       context "for :multi" do
-        it "should work after_find callback" do
-          hs_people = connection.select(model_class, :multi, :id, [1, 2])
-
-          hs_person = hs_people[0]
-          expect(hs_person.born_year).to eql(Time.now.year - hs_person.age)
-          expect(hs_person.instance_variable_get(:@born_year)).to eql(hs_person.born_year)
-
-          hs_person = hs_people[1]
-          expect(hs_person.born_year).to eql(Time.now.year - hs_person.age)
-          expect(hs_person.instance_variable_get(:@born_year)).to eql(hs_person.born_year)
+        describe "should work after_find callback" do
+          subject                { connection.select model_class, :multi, :id, [1, 2] }
+          its(:size)             { should eql 2 }
+          its("first.born_year") { should eql Time.now.year - subject.first.age }
+          its("last.born_year")  { should eql Time.now.year - subject.last.age }
         end
 
-        it "should work after_initialize callback" do
-          hs_people = connection.select(model_class, :multi, :id, [1, 2])
-
-          hs_person = hs_people[0]
-          expect(hs_person.family_name).to eql(hs_person.name.split(" ").last)
-          expect(hs_person.instance_variable_get(:@family_name)).to eql(hs_person.family_name)
-
-          hs_person = hs_people[1]
-          expect(hs_person.family_name).to eql(hs_person.name.split(" ").last)
-          expect(hs_person.instance_variable_get(:@family_name)).to eql(hs_person.family_name)
+        describe "should work after_initialize callback" do
+          subject                  { connection.select model_class, :multi, :id, [1, 2] }
+          its(:size)               { should eql 2 }
+          its("first.family_name") { should eql subject.first.name.split(" ").last }
+          its("last.family_name")  { should eql subject.last.name.split(" ").last }
         end
       end
     end
@@ -296,54 +242,61 @@ describe ActiveRecordHandlerSocket::Connection do
         connection.reconnect!
       end
 
-      it "should open index before select" do
-        expect{
-          connection.select(model_class, :first, :id, [1])
-        }.not_to raise_error
-        expect(connection.indexes[connection.index_key(model_class, :id)][:opened]).to be
+      subject { connection.indexes[connection.index_key(model_class, :id)][:opened] }
+      it      { should be false }
+
+      describe "select after reconnect" do
+        subject { lambda { connection.select model_class, :first, :id, [1] } }
+        it      { should_not raise_error }
+      end
+
+      describe "indexes after select" do
+        before :each do
+          connection.select model_class, :first, :id, [1]
+        end
+
+        subject { connection.indexes[connection.index_key(model_class, :id)][:opened] }
+        it      { should be true }
       end
     end
   end
 
   describe "instantiate" do
     context "when valid result" do
-      it "should return single record" do
-        result = connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"]]]
-
-        expect(result.size).to eql(1)
-
-        record = result.first
-        expect(record.id).to     eql(1)
-        expect(record.name).to   eql("MySQL")
-        expect(record.age).to    eql(19)
-        expect(record.status).to be
+      describe "should return single record" do
+        subject { connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"]]] }
+        its(:size) { should eql 1 }
       end
 
-      it "should return multi record" do
-        result = connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"], ["2", "%#123", "55", "0"]]]
+      describe "should return type casted values" do
+        subject      { connection.instantiate(model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"]]]).first }
+        its(:id)     { should eql 1 }
+        its(:name)   { should eql "MySQL" }
+        its(:age)    { should eql 19 }
+        its(:status) { should be true }
+      end
 
-        expect(result.size).to eql(2)
+      describe "should return multi record" do
+        subject    { connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"], ["2", "%#123", "55", "0"]]] }
+        its(:size) { should eql 2 }
+      end
 
-        record = result.first
-        expect(record.id).to     eql(1)
-        expect(record.name).to   eql("MySQL")
-        expect(record.age).to    eql(19)
-        expect(record.status).to be
-
-        record = result.last
-        expect(record.id).to         eql(2)
-        expect(record.name).to       eql("%#123")
-        expect(record.age).to        eql(55)
-        expect(record.status).not_to be
+      describe "should return type casted values in each object" do
+        subject             { connection.instantiate model_class, connection.index_key(model_class, :id), [0, [["1", "MySQL", "19", "1"], ["2", "%#123", "55", "0"]]] }
+        its("first.id")     { should eql 1 }
+        its("first.name")   { should eql "MySQL" }
+        its("first.age")    { should eql 19 }
+        its("first.status") { should be true }
+        its("last.id")      { should eql 2 }
+        its("last.name")    { should eql "%#123" }
+        its("last.age")     { should eql 55 }
+        its("last.status")  { should be false }
       end
     end
 
     context "when invalid result" do
-      it "should raise error" do
-        expect{
-          connection.instantiate model_class, connection.index_key(model_class, :id), [2, "kpnum"]
-        }.to raise_error(ArgumentError)
-      end
+      subject { lambda { connection.instantiate model_class, connection.index_key(model_class, :id), [2, "kpnum"] } }
+      it      { should raise_error ArgumentError }
     end
 
     context "when connection error" do
