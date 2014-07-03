@@ -27,64 +27,53 @@ describe ActiveRecordHandlerSocket::Connection do
 
   describe "#insert" do
     context "with given attributes" do
-      subject {
-        id = connection.insert model_class, :name => "Test", :age => 24, :status => true
-        model_class.find_by_id id
-      }
+      before :each do
+        @id = connection.insert model_class, :name => "Test", :age => 24, :status => true
+      end
 
+      subject      { model_class.find_by_id @id }
       its(:id)     { should be > 3 }
-      its(:name)   { should == "Test" }
-      its(:age)    { should == 24 }
-      its(:status) { should == true }
+      its(:name)   { should eql "Test" }
+      its(:age)    { should eql 24 }
+      its(:status) { should eql true }
     end
 
     # After handlersocket version up (over 0.0.2) nil will be supported.
     context "with nil value given" do
-      it "should callable but having nil" do
-        expect{
-          connection.insert model_class, :name => "Test", :age => 24, :status => nil
-        }.to raise_error TypeError
-      end
+      subject { lambda { connection.insert model_class, :name => "Test", :age => 24, :status => nil } }
+      it      { should raise_error TypeError }
     end
 
     context "with unique index" do
       describe "save first time" do
-        subject {
-          id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
-          another_model_class.find_by_id id
-        }
+        before :each do
+          @id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
+        end
 
-        its(:person_id) { should == 1 }
-        its(:title)     { should == "Hobby" }
+        subject         { another_model_class.find_by_id @id }
+        its(:person_id) { should eql 1 }
+        its(:title)     { should eql "Hobby" }
       end
 
-      it "should raise error" do
-        connection.insert another_model_class, :person_id => 1, :title => "Hobby"
-
-        expect{
+      describe "should raise error" do
+        before :each do
           connection.insert another_model_class, :person_id => 1, :title => "Hobby"
-        }.to raise_error(ArgumentError)
+        end
+
+        subject { lambda { connection.insert another_model_class, :person_id => 1, :title => "Hobby" } }
+        it      { should raise_error ArgumentError }
       end
     end
 
     context "with timestamp" do
-      it "should fill updated_at" do
-        id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
-
-        record = another_model_class.find_by_id id
-
-        expect(record.updated_at).to be_within(2).of(Time.now)
+      before :each do
+        @id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
       end
 
-      it "should fill created_at" do
-        id = connection.insert another_model_class, :person_id => 1, :title => "Hobby"
-
-        record = another_model_class.find_by_id id
-
-        expect(record.updated_at).to be_within(2).of(Time.now)
-      end
+      subject          { another_model_class.find_by_id @id }
+      its(:updated_at) { should be_within(2).of(Time.now) }
+      its(:created_at) { should be_within(2).of(Time.now) }
     end
-
   end
 
   describe "#insert many" do
@@ -104,31 +93,27 @@ AND    TABLE_NAME = '#{model_class.table_name}'
     end
 
     subject { @id }
-
-    it { should == model_class.last.id }
-    it { should == auto_increment - 1 + 1000 }
+    it      { should eql model_class.last.id }
+    it      { should eql auto_increment - 1 + 1000 }
   end
 
   describe "#update" do
     context "with given attributes" do
-      subject {
-        id = connection.update model_class, 1, :name => "Test", :age => 24, :status => true
-        model_class.find_by_id id
-      }
+      before :each do
+        @id = connection.update model_class, 1, :name => "Test", :age => 24, :status => true
+      end
 
-      its(:id)     { should == 1 }
-      its(:name)   { should == "Test" }
-      its(:age)    { should == 24 }
-      its(:status) { should == true }
+      subject      { model_class.find_by_id @id }
+      its(:id)     { should eql 1 }
+      its(:name)   { should eql "Test" }
+      its(:age)    { should eql 24 }
+      its(:status) { should eql true }
     end
 
     # After handlersocket version up (over 0.0.2) nil will be supported.
     context "with nil value given" do
-      it {
-        expect{
-          connection.update model_class, 1, :name => "Test", :age => 24, :status => nil
-        }.to raise_error TypeError
-      }
+      subject { lambda { connection.update model_class, 1, :name => "Test", :age => 24, :status => nil } }
+      it      { should raise_error TypeError }
     end
 
     context "with unique index" do
@@ -140,11 +125,8 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         @another_dance.save
       end
 
-      it {
-        expect{
-          connection.update another_model_class, @another_dance.id, :person_id => 1, :title => "Dance"
-        }.to raise_error ArgumentError
-      }
+      subject { lambda { connection.update another_model_class, @another_dance.id, :person_id => 1, :title => "Dance" } }
+      it      { should raise_error ArgumentError }
     end
 
     context "with timestamp" do
@@ -158,20 +140,33 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         expect(@dance.created_at).not_to be_nil
 
         @dance.reload
+
+        @id = connection.update another_model_class, @dance.id, :person_id => @dance.person_id, :title => "Hobby", :created_at => @dance.created_at, :updated_at => @dance.updated_at
       end
 
-      subject {
-        id = connection.update another_model_class, @dance.id, :person_id => @dance.person_id, :title => "Hobby", :created_at => @dance.created_at, :updated_at => @dance.updated_at
-        another_model_class.find_by_id id
-      }
+      subject          { another_model_class.find_by_id @id }
+      its(:updated_at) { should eql @dance.updated_at }
+      its(:created_at) { should eql @dance.created_at }
+    end
 
-      its(:updated_at) {
-        should eql @dance.updated_at
-      }
+    context "without updated_at given" do
+      before :each do
+        @dance = FactoryGirl.build(:dance)
+        @dance.updated_at = Date.yesterday.to_time
+        @dance.created_at = Date.yesterday.to_time
+        @dance.save
 
-      its(:created_at) {
-        should eql @dance.created_at
-      }
+        expect(@dance.updated_at).not_to be_nil
+        expect(@dance.created_at).not_to be_nil
+
+        @dance.reload
+        @id = connection.update another_model_class, @dance.id, :person_id => @dance.person_id, :title => "Hobby", :created_at => @dance.created_at, :updated_at => nil
+      end
+
+      subject          { another_model_class.find_by_id @id }
+      its(:updated_at) { should_not eql @dance.updated_at }
+      its(:updated_at) { should be_within(2).of(Time.now) }
+      its(:created_at) { should eql @dance.created_at }
     end
   end
 
@@ -191,8 +186,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
     end
 
     subject { @count }
-
-    it { should == model_class.count }
+    it      { should eql model_class.count }
   end
 
   describe "#current_time_from_proper_timezone" do
@@ -210,8 +204,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
       end
 
       subject { connection.current_time_from_proper_timezone }
-
-      it { should == Time.now.utc.to_s(:db) }
+      it      { should eql Time.now.utc.to_s(:db) }
     end
 
     context "with local timezone" do
@@ -220,51 +213,46 @@ AND    TABLE_NAME = '#{model_class.table_name}'
       end
 
       subject { connection.current_time_from_proper_timezone }
-
-      it { should == Time.now.to_s(:db) }
+      it      { should eql Time.now.to_s(:db) }
     end
   end
 
   describe "#to_a_write_values" do
     describe "attributes to array" do
       subject { connection.to_a_write_values({:A => 1, :B => "b"}, ["A", "B"]) }
-      it { should == [1, "b"] }
+      it      { should eql [1, "b"] }
     end
 
     describe "attributes to reverse array" do
       subject { connection.to_a_write_values({:A => 1, :B => "b"}, ["B", "A"]) }
-      it { should == ["b", 1] }
+      it      { should eql ["b", 1] }
     end
 
     context "when true given" do
       subject { connection.to_a_write_values({:C => true}, ["C"]) }
-      it { should == [1] }
+      it      { should eql [1] }
     end
 
     context "when true given" do
       subject { connection.to_a_write_values({:C => false}, ["C"]) }
-      it { should == [0] }
+      it      { should eql [0] }
     end
 
     context "when nil given" do
       subject { connection.to_a_write_values({:D => nil}, ["D"]) }
-      it { should == [nil] }
+      it      { should eql [nil] }
     end
 
     context "when time given" do
       let(:now) { Time.now }
-
-      subject { connection.to_a_write_values({:E => now}, ["E"]) }
-
-      it { should == [now.to_s(:db)] }
+      subject   { connection.to_a_write_values({:E => now}, ["E"]) }
+      it        { should eql [now.to_s(:db)] }
     end
 
     context "when time given" do
       let(:today) { Date.today }
-
-      subject { connection.to_a_write_values({:E => today}, ["E"]) }
-
-      it { should == [today.to_s(:db)] }
+      subject     { connection.to_a_write_values({:E => today}, ["E"]) }
+      it          { should eql [today.to_s(:db)] }
     end
 
     context "when timestamp field is nil" do
@@ -279,66 +267,56 @@ AND    TABLE_NAME = '#{model_class.table_name}'
 
       describe "add timestamps" do
         let(:now) { Time.now }
-
-        subject { connection.to_a_write_values({}, ["updated_at", "created_at", "updated_on", "created_on"]) }
-
-        it { should == [now.to_s(:db), now.to_s(:db), now.to_s(:db), now.to_s(:db)] }
+        subject   { connection.to_a_write_values({}, ["updated_at", "created_at", "updated_on", "created_on"]) }
+        it        { should eql [now.to_s(:db), now.to_s(:db), now.to_s(:db), now.to_s(:db)] }
       end
 
       describe "add timestamps except existing" do
         let(:now)        { Time.now }
         let(:created_at) { now - 1 }
-
-        subject { connection.to_a_write_values({:created_at => created_at, :created_on => created_at}, ["updated_at", "created_at", "updated_on", "created_on"]) }
-
-        it { should == [now.to_s(:db), created_at.to_s(:db), now.to_s(:db), created_at.to_s(:db)] }
+        subject          { connection.to_a_write_values({:created_at => created_at, :created_on => created_at}, ["updated_at", "created_at", "updated_on", "created_on"]) }
+        it               { should eql [now.to_s(:db), created_at.to_s(:db), now.to_s(:db), created_at.to_s(:db)] }
       end
     end
 
     context "when less fields" do
       subject { connection.to_a_write_values({:X => 1, :Y => 2, :Z => 3}, ["X", "Z"]) }
-
-      it { should == [1, 3] }
+      it      { should == [1, 3] }
     end
 
     context "when more fields" do
       subject { connection.to_a_write_values({:X => 1, :Y => 2, :Z => 3}, ["W", "X", "Y", "Z"]) }
-
-      it { should == [nil, 1, 2, 3] }
+      it      { should == [nil, 1, 2, 3] }
     end
   end
 
   describe "#write_result" do
     subject { connection.write_result [0, [["10"]]] }
-
-    it { should == 10 }
+    it      { should == 10 }
 
     context "when error signal 121 given" do
-      it "should raise error for duplicate entry" do
-        expect{
-          connection.write_result [1, "121"]
-        }.to raise_error ArgumentError
+      describe "should raise error for duplicate entry" do
+        subject { lambda { connection.write_result [1, "121"] } }
+        it      { should raise_error ArgumentError }
       end
 
-      it "should raise error has message for duplicate entry" do
-        message = nil
-
-        begin
-          connection.write_result [1, "121"]
-        rescue ArgumentError => e
-          message = e.message
+      describe "should raise error has message for duplicate entry" do
+        before :each do
+          begin
+            connection.write_result [1, "121"]
+          rescue ArgumentError => e
+            @message = e.message
+          end
         end
 
-        expect(message).to match(/duplicate entry/)
+        subject { @message }
+        it      { should match /duplicate entry/ }
       end
     end
 
     context "when another error given" do
-      it "should raise error for duplicate entry" do
-        expect{
-          connection.write_result [1, "stmtnum"]
-        }.to raise_error(ArgumentError)
-      end
+      subject { lambda { connection.write_result [1, "stmtnum"] } }
+      it      { should raise_error ArgumentError }
     end
 
     context "when connection error" do
@@ -359,21 +337,23 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         connection.reconnect!
       end
 
-      it "should raise error for connection loat" do
-        expect{
-          connection.write_result [-1, "write: closed"]
-        }.to raise_error ActiveRecordHandlerSocket::ConnectionLost
+      describe "should raise error for connection loat" do
+        subject { lambda { connection.write_result [-1, "write: closed"] } }
+        it      { should raise_error ActiveRecordHandlerSocket::ConnectionLost }
       end
 
-      it "should all indexes closed" do
-        expect(connection.indexes.map{|k, setting| setting[:opened] }.any?).to be
+      describe "should all indexes closed" do
+        before :each do
+          expect(connection.indexes.map{|k, setting| setting[:opened] }.any?).to be
 
-        begin
-          connection.write_result [-1, "write: closed"]
-        rescue
+          begin
+            connection.write_result [-1, "write: closed"]
+          rescue
+          end
         end
 
-        expect(connection.indexes.map{|k, setting| !setting[:opened] }.all?).to be
+        subject { connection.indexes.map{|k, setting| !setting[:opened] }.all? }
+        it      { should be true }
       end
     end
   end
