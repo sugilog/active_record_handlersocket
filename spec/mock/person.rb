@@ -7,6 +7,8 @@ class Person < ActiveRecord::Base
 
   attr_reader :family_name, :born_year
 
+  validates_inclusion_of :status, :in => [true, false]
+
   def self.active_record_version
     if ActiveRecord.respond_to?(:version)
       ActiveRecord.version

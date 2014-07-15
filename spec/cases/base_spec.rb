@@ -303,52 +303,159 @@ describe ActiveRecord::Base do
   end
 
   describe "#hscreate" do
-    it
+    before :each do
+      @record = Hobby.new :title => "Test", :person_id => 1
+    end
 
     context "returned value" do
+      subject { @record.hscreate }
+      it      { should be true }
     end
 
     context "do validation" do
+      before :each do
+        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record.hscreate
+      end
+
+      subject           { @record }
+      its(:new_record?) { should be false }
+      its(:errors)      { should be_empty }
     end
 
     context "invalid record" do
+      before :each do
+        @record = Person.new :name => "Test", :age => 25, :status => nil
+        @record.hscreate
+      end
+
+      subject           { @record }
+      its(:new_record?) { should be true }
+      its(:errors)      { should_not be_empty }
     end
 
     context "work before_create callback" do
+      before :each do
+        @record.hscreate
+      end
+
+      subject               { @record.callback_called }
+      its([:before_create]) { should be true }
+      its([:before_update]) { should be_nil }
     end
 
-    context "stop on before_creaate callback" do
-    end
+    context "stop on before_create callback" do
+      before :each do
+        stub_object @record, :before_create_callback, false
 
-    context "created" do
+        @record.hscreate
+      end
+
+      subject           { @record }
+      its(:new_record?) { should be true }
+      its(:errors)      { should be_empty }
     end
 
     context "work after_create callback" do
+      before :each do
+        @record.hscreate
+      end
+
+      subject              { @record.callback_called }
+      its([:after_create]) { should be true }
+      its([:after_update]) { should be_nil }
+    end
+
+    context "add timestamps" do
+      before :each do
+        @record.hscreate
+      end
+
+      subject          { @record }
+      its(:created_at) { should_not be_nil }
+      its(:updated_at) { should_not be_nil }
     end
   end
 
   describe "#hsudpate" do
-    it
+    before :each do
+      @record = Hobby.new :title => "Test", :person_id => 1
+      @record.save
+      @record.callback_called = nil
+      @record.title = "Update"
+    end
 
     context "returned value" do
+      subject { @record.hsupdate }
+      it      { should be true }
     end
 
     context "do validation" do
+      before :each do
+        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record.save
+        @record.status = false
+        @record.hsupdate
+      end
+
+      subject               { @record }
+      its(:status_changed?) { should be false }
+      its(:errors)          { should be_empty }
     end
 
     context "invalid record" do
+      before :each do
+        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record.save
+        @record.status = nil
+        @record.hsupdate
+      end
+
+      subject               { @record }
+      its(:status_changed?) { should be true }
+      its(:errors)          { should_not be_empty }
     end
 
-    context "work before_create callback" do
+    context "work before_update callback" do
+      before :each do
+        @record.hsupdate
+      end
+
+      subject               { @record.callback_called }
+      its([:before_create]) { should be_nil }
+      its([:before_update]) { should be true }
     end
 
-    context "stop on before_creaate callback" do
+    context "stop on before_update callback" do
+      before :each do
+        stub_object @record, :before_update_callback, false
+
+        @record.hsupdate
+      end
+
+      subject              { @record }
+      its(:title_changed?) { should be true }
+      its(:errors)         { should be_empty }
     end
 
-    context "created" do
+    context "work after_update callback" do
+      before :each do
+        @record.hsupdate
+      end
+
+      subject              { @record.callback_called }
+      its([:after_create]) { should be_nil }
+      its([:after_update]) { should be true }
     end
 
-    context "work after_create callback" do
+    context "add timestamps" do
+      before :each do
+        @record.hsupdate
+      end
+
+      subject          { @record }
+      its(:created_at) { should_not be_nil }
+      its(:updated_at) { should_not be_nil }
     end
   end
 

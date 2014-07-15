@@ -74,6 +74,7 @@ module ActiveRecordHandlerSocket
         if result = self.class.hscreate(self.attributes)
           self.id = result
           self.instance_variable_set :@new_record, false
+          changes_applied
           !!id
         else
           false
@@ -88,7 +89,12 @@ module ActiveRecordHandlerSocket
 
       run_callbacks :update do
         hs_set_timestamps_on_update
-        !!self.class.hsupdate(self.id, self.attributes)
+        if result = self.class.hsupdate(self.id, self.attributes)
+          changes_applied
+          !!result
+        else
+          false
+        end
       end
     end
 
