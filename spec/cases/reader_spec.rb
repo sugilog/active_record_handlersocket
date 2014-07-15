@@ -210,29 +210,42 @@ describe ActiveRecordHandlerSocket::Connection do
     describe "with active_record callbacks" do
       context "for :single" do
         describe "should work after_find callback" do
-          subject         { connection.select model_class, :first, :id, [1] }
-          its(:born_year) { should eql Time.now.year - subject.age }
+          before :each do
+            @record = connection.select model_class, :first, :id, [1]
+          end
+
+          subject         { @record }
+          its(:born_year) { should eql Time.now.year - @record.age }
         end
 
         describe "should work after_initialize callback" do
-          subject           { connection.select model_class, :first, :id, [1] }
-          its(:family_name) { should eql subject.name.split(" ").last }
+          before :each do
+            @record = connection.select model_class, :first, :id, [1]
+          end
+          subject           { @record }
+          its(:family_name) { should eql @record.name.split(" ").last }
         end
       end
 
       context "for :multi" do
         describe "should work after_find callback" do
-          subject                { connection.select model_class, :multi, :id, [1, 2] }
+          before :each do
+            @record = connection.select model_class, :multi, :id, [1, 2] }
+          end
+
           its(:size)             { should eql 2 }
-          its("first.born_year") { should eql Time.now.year - subject.first.age }
-          its("last.born_year")  { should eql Time.now.year - subject.last.age }
+          its("first.born_year") { should eql Time.now.year - @record.first.age }
+          its("last.born_year")  { should eql Time.now.year - @record.last.age }
         end
 
         describe "should work after_initialize callback" do
-          subject                  { connection.select model_class, :multi, :id, [1, 2] }
+          before :each do
+            @record = connection.select model_class, :multi, :id, [1, 2] }
+          end
+
           its(:size)               { should eql 2 }
-          its("first.family_name") { should eql subject.first.name.split(" ").last }
-          its("last.family_name")  { should eql subject.last.name.split(" ").last }
+          its("first.family_name") { should eql @record.first.name.split(" ").last }
+          its("last.family_name")  { should eql @record.last.name.split(" ").last }
         end
       end
     end
