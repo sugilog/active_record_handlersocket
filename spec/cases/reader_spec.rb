@@ -230,7 +230,7 @@ describe ActiveRecordHandlerSocket::Connection do
       context "for :multi" do
         describe "should work after_find callback" do
           before :each do
-            @record = connection.select model_class, :multi, :id, [1, 2] }
+            @record = connection.select model_class, :multi, :id, [1, 2]
           end
 
           its(:size)             { should eql 2 }
@@ -240,7 +240,7 @@ describe ActiveRecordHandlerSocket::Connection do
 
         describe "should work after_initialize callback" do
           before :each do
-            @record = connection.select model_class, :multi, :id, [1, 2] }
+            @record = connection.select model_class, :multi, :id, [1, 2]
           end
 
           its(:size)               { should eql 2 }
