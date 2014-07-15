@@ -151,7 +151,9 @@ module ActiveRecordHandlerSocket
 
     def hs_run_callbacks(kind, &block)
       if self.class.respond_to?("before_#{kind}_callback_chain") && self.class.respond_to?("after_#{kind}_callback_chain")
-        if false == run_callbacks("before_#{kind}")
+        result = run_callbacks("before_#{kind}")
+        p result
+        if false == result
           return false
         end
 
