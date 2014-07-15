@@ -149,16 +149,15 @@ module ActiveRecordHandlerSocket
       end
     end
 
+    # https://github.com/rails/rails/blob/v2.3.18/activerecord/lib/active_record/callbacks.rb#L343
     def hs_run_callbacks(kind, &block)
       if self.class.respond_to?("before_#{kind}_callback_chain") && self.class.respond_to?("after_#{kind}_callback_chain")
-        result = run_callbacks("before_#{kind}")
-        p result
-        if false == result
+        if false == callback("before_#{kind}")
           return false
         end
 
         result = yield
-        run_callbacks "after_#{kind}"
+        callback "after_#{kind}"
         result
       else
         run_callbacks kind, &block
