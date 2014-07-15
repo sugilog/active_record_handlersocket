@@ -129,7 +129,7 @@ module ActiveRecordHandlerSocket
 
     # ref: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/timestamp.rb
     def hs_set_timestamps_on_update
-      if should_record_timestamps?
+      if hs_should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
         hs_timestamp_attributes_for_update.each do |column|
