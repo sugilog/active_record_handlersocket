@@ -119,7 +119,7 @@ module ActiveRecordHandlerSocket
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
-        all_timestamp_attributes.each do |column|
+        hs_all_timestamp_attributes.each do |column|
           if respond_to?(column) && respond_to?("#{column}=") && self.__send__(column).nil?
             write_attribute column.to_s, current_time
           end
@@ -132,7 +132,8 @@ module ActiveRecordHandlerSocket
       if should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
-        timestamp_attributes_for_update_in_model.each do |column|
+        hs_timestamp_attributes_for_update.each do |column|
+          next unless respond_to?(column)
           column = column.to_s
           next if attribute_changed? column
           write_attribute column, current_time
@@ -159,6 +160,30 @@ module ActiveRecordHandlerSocket
         result
       else
         run_callbacks kind, &block
+      end
+    end
+
+    def hs_all_timestamp_attributes
+      if respond_to?(:all_timestamp_attributes, true)
+        all_timestamp_attributes
+      else
+        hs_timestamp_attributes_for_create + hs_timestamp_attributes_for_update
+      end
+    end
+
+    def hs_timestamp_attributes_for_update
+      [:updated_at, :updated_on]
+    end
+
+    def hs_timestamp_attributes_for_create
+      [:created_at, :created_on]
+    end
+
+    def hs_should_record_timestamps?
+      if respond_to?(:should_record_timestamps?, true)
+        should_record_timestamps?
+      else
+        self.record_timestamps && changed?
       end
     end
   end
