@@ -139,21 +139,48 @@ describe ActiveRecord::Base do
   end
 
   describe ".hsfind" do
-    it
-
     context "for :first" do
+      context "when found record" do
+        subject { klass.hsfind :first, :id, [1] }
+        it      { should eql @bob }
+      end
+
+      context "when not found" do
+        subject { klass.hsfind :first, :id, [0] }
+        it      { should be_nil }
+      end
     end
 
     context "for :multi" do
+      context "when found records" do
+        subject { klass.hsfind :multi, :id, [1, 2] }
+        it      { should eql [@bob, @pharrell] }
+      end
+
+      context "when partial found" do
+        subject { klass.hsfind :multi, :id, [0, 1] }
+        it      { should eql [@bob] }
+      end
+
+      context "when not found" do
+        subject { klass.hsfind :multi, :id, [0, -1] }
+        it      { should be_empty }
+      end
     end
 
     context "for :unknown" do
+      subject { lambda { klass.hsfind :unknown, :id, [1] } }
+      it      { should raise_error ArgumentError }
     end
 
     context "unknown key given" do
+      subject { lambda { klass.hsfind :first, :unknown, [1] } }
+      it      { should raise_error ActiveRecordHandlerSocket::UnknownIndexError }
     end
 
     context "args empty" do
+      subject { lambda { klass.hsfind :first, :id, [] } }
+      it      { should raise_error ArgumentError }
     end
   end
 
