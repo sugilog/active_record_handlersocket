@@ -74,7 +74,7 @@ module ActiveRecordHandlerSocket
         if result = self.class.hscreate(self.attributes)
           self.id = result
           self.instance_variable_set :@new_record, false
-          changes_applied
+          hs_changes_applied
           !!id
         else
           false
@@ -90,7 +90,7 @@ module ActiveRecordHandlerSocket
       run_callbacks :update do
         hs_set_timestamps_on_update
         if result = self.class.hsupdate(self.id, self.attributes)
-          changes_applied
+          hs_changes_applied
           !!result
         else
           false
@@ -140,8 +140,10 @@ module ActiveRecordHandlerSocket
       end
     end
 
-    unless ActiveRecord.version > Gem::Version.new(4)
-      def changes_applied
+    def hs_changes_applied
+      if respond_to?(:changes_applied, true)
+        changes_applied
+      else
         changed_attributes.clear
       end
     end
