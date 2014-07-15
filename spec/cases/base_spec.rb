@@ -450,12 +450,14 @@ describe ActiveRecord::Base do
 
     context "add timestamps" do
       before :each do
+        @old_created_at = @record.created_at
+        @old_updated_at = @record.updated_at
         @record.hsupdate
       end
 
       subject          { @record }
-      its(:created_at) { should_not be_nil }
-      its(:updated_at) { should_not be_nil }
+      its(:created_at) { should eql @old_created_at }
+      its(:updated_at) { should_not eql @old_updated_at }
     end
   end
 
