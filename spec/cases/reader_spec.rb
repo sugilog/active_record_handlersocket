@@ -233,6 +233,7 @@ describe ActiveRecordHandlerSocket::Connection do
             @record = connection.select model_class, :multi, :id, [1, 2]
           end
 
+          subject                { @record }
           its(:size)             { should eql 2 }
           its("first.born_year") { should eql Time.now.year - @record.first.age }
           its("last.born_year")  { should eql Time.now.year - @record.last.age }
@@ -243,6 +244,7 @@ describe ActiveRecordHandlerSocket::Connection do
             @record = connection.select model_class, :multi, :id, [1, 2]
           end
 
+          subject                { @record }
           its(:size)               { should eql 2 }
           its("first.family_name") { should eql @record.first.name.split(" ").last }
           its("last.family_name")  { should eql @record.last.name.split(" ").last }
