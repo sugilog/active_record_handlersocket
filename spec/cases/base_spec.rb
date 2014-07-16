@@ -1,11 +1,11 @@
 require 'spec_helper'
 
 describe ActiveRecord::Base do
-  let :klass do
+  let :model_class do
     Person
   end
 
-  let :another_klass do
+  let :another_model_class do
     Hobby
   end
 
@@ -23,7 +23,7 @@ describe ActiveRecord::Base do
     context "when same key from another model" do
       describe "Person:id" do
         subject {
-          index_key = connection.index_key klass, :id
+          index_key = connection.index_key model_class, :id
           setting   = connection.fetch index_key
           setting[:fields]
         }
@@ -32,7 +32,7 @@ describe ActiveRecord::Base do
 
       describe "Hobby:id" do
         subject {
-          index_key = connection.index_key another_klass, :id
+          index_key = connection.index_key another_model_class, :id
           setting = connection.fetch index_key
           setting[:fields]
         }
@@ -42,11 +42,11 @@ describe ActiveRecord::Base do
 
     context "when columns options" do
       before :each do
-        klass.hs_reader :test, "PRIMARY", :columns => %W[id name]
+        model_class.hs_reader :test, "PRIMARY", :columns => %W[id name]
       end
 
       subject {
-        index_key = connection.index_key klass, :test
+        index_key = connection.index_key model_class, :test
         setting = connection.fetch index_key
         setting[:fields]
       }
@@ -58,7 +58,7 @@ describe ActiveRecord::Base do
     context "when same key from another model" do
       describe "Person:__writer__" do
         subject {
-          index_key = connection.index_writer_key klass
+          index_key = connection.index_writer_key model_class
           setting = connection.fetch index_key
           setting[:fields]
         }
@@ -67,7 +67,7 @@ describe ActiveRecord::Base do
 
       describe "Hobby:__writer__" do
         subject {
-          index_key = connection.index_writer_key another_klass
+          index_key = connection.index_writer_key another_model_class
           setting = connection.fetch index_key
           setting[:fields]
         }
@@ -77,11 +77,11 @@ describe ActiveRecord::Base do
 
     context "when columns options" do
       before :each do
-        klass.hs_writer :columns => %W[id name]
+        model_class.hs_writer :columns => %W[id name]
       end
 
       subject {
-        index_key = connection.index_writer_key klass
+        index_key = connection.index_writer_key model_class
         setting = connection.fetch index_key
         setting[:fields]
       }
@@ -90,7 +90,7 @@ describe ActiveRecord::Base do
 
     describe "index fixed" do
       subject {
-        index_key = connection.index_writer_key klass
+        index_key = connection.index_writer_key model_class
         setting = connection.fetch index_key
         setting[:index]
       }
@@ -101,38 +101,38 @@ describe ActiveRecord::Base do
   describe ".method_missing" do
     context "default behavior" do
       describe "find_by_id" do
-        subject { klass.find_by_id 1 }
+        subject { model_class.find_by_id 1 }
         it      { should eql @bob }
       end
 
       describe "find_by_age_and_status" do
-        subject { klass.find_by_age_and_status 36, true }
+        subject { model_class.find_by_age_and_status 36, true }
         it      { should eql @john }
       end
     end
 
     context "call .hsfind_by_xxx" do
       describe "for id" do
-        subject { klass.hsfind_by_id 1 }
+        subject { model_class.hsfind_by_id 1 }
         it      { should eql @bob }
       end
 
       # XXX: hsfind with true/false
       describe "for age_and_status" do
-        subject { klass.hsfind_by_age_and_status 36, 1 }
+        subject { model_class.hsfind_by_age_and_status 36, 1 }
         it      { should eql @john }
       end
     end
 
     context "call .hsfind_multi_by_xxx" do
       describe "for id" do
-        subject { klass.hsfind_multi_by_id 1, 3 }
+        subject { model_class.hsfind_multi_by_id 1, 3 }
         it      { should eql [@bob, @john] }
       end
 
       # XXX: hsfind with true/false
       describe "for age_and_status" do
-        subject { klass.hsfind_multi_by_age_and_status [36, 1] }
+        subject { model_class.hsfind_multi_by_age_and_status [36, 1] }
         it      { should eql [@john] }
       end
     end
@@ -141,67 +141,75 @@ describe ActiveRecord::Base do
   describe ".hsfind" do
     context "for :first" do
       context "when found record" do
-        subject { klass.hsfind :first, :id, [1] }
+        subject { model_class.hsfind :first, :id, [1] }
         it      { should eql @bob }
       end
 
       context "when not found" do
-        subject { klass.hsfind :first, :id, [0] }
+        subject { model_class.hsfind :first, :id, [0] }
         it      { should be_nil }
       end
     end
 
     context "for :multi" do
       context "when found records" do
-        subject { klass.hsfind :multi, :id, [1, 2] }
+        subject { model_class.hsfind :multi, :id, [1, 2] }
         it      { should eql [@bob, @pharrell] }
       end
 
       context "when partial found" do
-        subject { klass.hsfind :multi, :id, [0, 1] }
+        subject { model_class.hsfind :multi, :id, [0, 1] }
         it      { should eql [@bob] }
       end
 
       context "when not found" do
-        subject { klass.hsfind :multi, :id, [0, -1] }
+        subject { model_class.hsfind :multi, :id, [0, -1] }
         it      { should be_empty }
       end
     end
 
     context "for :unknown" do
-      subject { lambda { klass.hsfind :unknown, :id, [1] } }
+      subject { lambda { model_class.hsfind :unknown, :id, [1] } }
       it      { should raise_error ArgumentError }
     end
 
     context "unknown key given" do
-      subject { lambda { klass.hsfind :first, :unknown, [1] } }
+      subject { lambda { model_class.hsfind :first, :unknown, [1] } }
       it      { should raise_error ActiveRecordHandlerSocket::UnknownIndexError }
     end
 
     context "args empty" do
-      subject { lambda { klass.hsfind :first, :id, [] } }
+      subject { lambda { model_class.hsfind :first, :id, [] } }
       it      { should raise_error ArgumentError }
     end
   end
 
   describe ".hscreate" do
     before :each do
-      Person.hs_writer
+      model_class.hs_writer
       Hobby.hs_writer
     end
 
     describe "return value" do
-      let(:max_id) { Person.last.id }
-      subject      { Person.hscreate :name => "Test", :age => 24, :status => true }
-      it           { should eql max_id + 1 }
+      before :each do
+        @auto_increment = model_class.connection.__send__(:select, <<-SQL).to_a.first["AUTO_INCREMENT"]
+SELECT AUTO_INCREMENT
+FROM   INFORMATION_SCHEMA.TABLES
+WHERE  TABLE_SCHEMA = '#{model_class.configurations[RAILS_ENV][:database]}'
+AND    TABLE_NAME = '#{model_class.table_name}'
+        SQL
+      end
+
+      subject { model_class.hscreate :name => "Test", :age => 24, :status => true }
+      it      { should eql @auto_increment }
     end
 
     describe "Person created" do
       before :each do
-        @id = Person.hscreate :name => "Test", :age => 24, :status => true
+        @id = model_class.hscreate :name => "Test", :age => 24, :status => true
       end
 
-      subject      { Person.find_by_id @id }
+      subject      { model_class.find_by_id @id }
       its(:name)   { should eql "Test" }
       its(:age)    { should eql 24 }
       its(:status) { should be true }
@@ -209,10 +217,10 @@ describe ActiveRecord::Base do
 
     describe "Hobby created" do
       before :each do
-        @id = Hobby.hscreate :person_id => 1, :title => "Test"
+        @id = another_model_class.hscreate :person_id => 1, :title => "Test"
       end
 
-      subject          { Hobby.find_by_id @id }
+      subject          { another_model_class.find_by_id @id }
       its(:person_id)  { should eql 1 }
       its(:title)      { should eql "Test" }
       its(:created_at) { should be_within(2).of(Time.now) }
@@ -222,21 +230,21 @@ describe ActiveRecord::Base do
 
   describe ".hsupdate" do
     before :each do
-      Person.hs_writer
-      Hobby.hs_writer
+      model_class.hs_writer
+      another_model_class.hs_writer
     end
 
     describe "return value" do
-      subject { Person.hsupdate 2, :name => "Test", :age => 24, :status => true }
+      subject { model_class.hsupdate 2, :name => "Test", :age => 24, :status => true }
       it      { should eql 2 }
     end
 
     describe "Person updated" do
       before :each do
-        Person.hsupdate 2, :name => "Test", :age => 24, :status => true
+        model_class.hsupdate 2, :name => "Test", :age => 24, :status => true
       end
 
-      subject      { Person.find_by_id 2 }
+      subject      { model_class.find_by_id 2 }
       its(:name)   { should eql "Test" }
       its(:age)    { should eql 24 }
       its(:status) { should be true }
@@ -246,10 +254,10 @@ describe ActiveRecord::Base do
       before :each do
         FactoryGirl.create :dance
         @time = Time.now - 1.day
-        Hobby.hsupdate 1, :person_id => 1, :title => "Test", :created_at => @time
+        another_model_class.hsupdate 1, :person_id => 1, :title => "Test", :created_at => @time
       end
 
-      subject          { Hobby.find_by_id 1 }
+      subject          { another_model_class.find_by_id 1 }
       its(:person_id)  { should eql 1 }
       its(:title)      { should eql "Test" }
       its(:created_at) { should_not be_within(2).of(Time.now) }
@@ -264,7 +272,7 @@ describe ActiveRecord::Base do
   describe "#hssave" do
     context "for new record" do
       before :each do
-        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record = model_class.new :name => "Test", :age => 25, :status => true
       end
 
       it "should return true" do
@@ -304,7 +312,7 @@ describe ActiveRecord::Base do
 
   describe "#hscreate" do
     before :each do
-      @record = Hobby.new :title => "Test", :person_id => 1
+      @record = another_model_class.new :title => "Test", :person_id => 1
     end
 
     context "returned value" do
@@ -314,7 +322,7 @@ describe ActiveRecord::Base do
 
     context "do validation" do
       before :each do
-        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record = model_class.new :name => "Test", :age => 25, :status => true
         @record.hscreate
       end
 
@@ -325,7 +333,7 @@ describe ActiveRecord::Base do
 
     context "invalid record" do
       before :each do
-        @record = Person.new :name => "Test", :age => 25, :status => nil
+        @record = model_class.new :name => "Test", :age => 25, :status => nil
         @record.hscreate
       end
 
@@ -379,7 +387,7 @@ describe ActiveRecord::Base do
 
   describe "#hsudpate" do
     before :each do
-      @record = Hobby.new :title => "Test", :person_id => 1
+      @record = another_model_class.new :title => "Test", :person_id => 1
       @record.save
       @record.callback_called = nil
       @record.title = "Update"
@@ -392,7 +400,7 @@ describe ActiveRecord::Base do
 
     context "do validation" do
       before :each do
-        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record = model_class.new :name => "Test", :age => 25, :status => true
         @record.save
         @record.status = false
         @record.hsupdate
@@ -405,7 +413,7 @@ describe ActiveRecord::Base do
 
     context "invalid record" do
       before :each do
-        @record = Person.new :name => "Test", :age => 25, :status => true
+        @record = model_class.new :name => "Test", :age => 25, :status => true
         @record.save
         @record.status = nil
         @record.hsupdate
