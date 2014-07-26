@@ -531,7 +531,7 @@ AND    TABLE_NAME = '#{model_class.table_name}'
       end
 
       subject { @record.reload }
-      it      { should be_truthy }
+      it      { should be } # truthy
     end
 
     context "work after_destroy callback" do
