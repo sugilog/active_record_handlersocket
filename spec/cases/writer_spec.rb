@@ -189,6 +189,10 @@ AND    TABLE_NAME = '#{model_class.table_name}'
     it      { should eql model_class.count }
   end
 
+  describe "#delete" do
+    it
+  end
+
   describe "#current_time_from_proper_timezone" do
     before :each do
       @default = model_class.default_timezone

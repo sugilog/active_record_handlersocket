@@ -227,6 +227,22 @@ module ActiveRecordHandlerSocket
         record_id
       end
 
+      def delete(model, record_id)
+        index_key = index_writer_key model
+
+        open_index model, index_key, :write
+
+        setting  = fetch index_key
+        id       = setting[:id]
+        operator = "="
+        limit    = 1
+        offset   = 0
+
+        result = write_connection.execute_delete id, operator, Array(record_id), limit, offset
+        write_result result
+        record_id
+      end
+
       def current_time_from_proper_timezone
         time = @model_class.default_timezone == :utc ? Time.now.utc : Time.now
         time.to_s(:db)

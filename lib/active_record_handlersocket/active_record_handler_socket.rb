@@ -51,6 +51,7 @@ module ActiveRecordHandlerSocket
 
     # no test
     def hsdelete(id)
+      hs_connection.delete self, id
     end
   end
 
@@ -99,15 +100,8 @@ module ActiveRecordHandlerSocket
     end
 
     def hsdestroy
-      if false == run_callbacks(:before_destroy)
-        return false
-      end
-
-      if self.class.hsdelete(self.id)
-        run_callbacks :after_destroy
-        true
-      else
-        false
+      hs_run_callbacks :destroy do
+        !!self.class.hsdelete(self.id)
       end
     end
   end

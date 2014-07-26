@@ -266,7 +266,34 @@ AND    TABLE_NAME = '#{model_class.table_name}'
   end
 
   describe ".hsdelete" do
-    it
+    before :each do
+      model_class.hs_writer
+      another_model_class.hs_writer
+    end
+
+    describe "return value" do
+      subject { model_class.hsdelete 2 }
+      it      { should eql 2 }
+    end
+
+    describe "Person deleted" do
+      before :each do
+        model_class.hsdelete 2
+      end
+
+      subject { model_class.find_by_id 2 }
+      it      { should be_nil }
+    end
+
+    describe "Hobby deleted" do
+      before :each do
+        FactoryGirl.create :dance
+        another_model_class.hsdelete 1
+      end
+
+      subject { another_model_class.find_by_id 1 }
+      it      { should be_nil }
+    end
   end
 
   describe "#hssave" do
@@ -347,9 +374,10 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         @record.hscreate
       end
 
-      subject               { @record.callback_called }
-      its([:before_create]) { should be true }
-      its([:before_update]) { should be_nil }
+      subject                { @record.callback_called }
+      its([:before_create])  { should be true }
+      its([:before_update])  { should be_nil }
+      its([:before_destroy]) { should be_nil }
     end
 
     context "stop on before_create callback" do
@@ -369,9 +397,10 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         @record.hscreate
       end
 
-      subject              { @record.callback_called }
-      its([:after_create]) { should be true }
-      its([:after_update]) { should be_nil }
+      subject               { @record.callback_called }
+      its([:after_create])  { should be true }
+      its([:after_update])  { should be_nil }
+      its([:after_destroy]) { should be_nil }
     end
 
     context "add timestamps" do
@@ -429,9 +458,10 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         @record.hsupdate
       end
 
-      subject               { @record.callback_called }
-      its([:before_create]) { should be_nil }
-      its([:before_update]) { should be true }
+      subject                { @record.callback_called }
+      its([:before_create])  { should be_nil }
+      its([:before_update])  { should be true }
+      its([:before_destroy]) { should be_nil }
     end
 
     context "stop on before_update callback" do
@@ -451,9 +481,10 @@ AND    TABLE_NAME = '#{model_class.table_name}'
         @record.hsupdate
       end
 
-      subject              { @record.callback_called }
-      its([:after_create]) { should be_nil }
-      its([:after_update]) { should be true }
+      subject               { @record.callback_called }
+      its([:after_create])  { should be_nil }
+      its([:after_update])  { should be true }
+      its([:after_destroy]) { should be_nil }
     end
 
     context "add timestamps" do
@@ -470,6 +501,48 @@ AND    TABLE_NAME = '#{model_class.table_name}'
   end
 
   describe "hsdestroy" do
-    it
+    before :each do
+      @record = another_model_class.new :title => "Test", :person_id => 1
+      @record.save
+      @record.callback_called = nil
+    end
+
+    context "returned value" do
+      subject { @record.hsdestroy }
+      it      { should be true }
+    end
+
+    context "work before_destroy callback" do
+      before :each do
+        @record.hsdestroy
+      end
+
+      subject                { @record.callback_called }
+      its([:before_create])  { should be_nil }
+      its([:before_update])  { should be_nil }
+      its([:before_destroy]) { should be true }
+    end
+
+    context "stop on before_destroy callback" do
+      before :each do
+        stub_object @record, :before_destroy_callback, false
+
+        @record.hsdestroy
+      end
+
+      subject { @record.reload }
+      it      { should be_truthy }
+    end
+
+    context "work after_destroy callback" do
+      before :each do
+        @record.hsdestroy
+      end
+
+      subject               { @record.callback_called }
+      its([:after_create])  { should be_nil }
+      its([:after_update])  { should be_nil }
+      its([:after_destroy]) { should be true }
+    end
   end
 end
