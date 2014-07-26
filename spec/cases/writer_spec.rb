@@ -175,13 +175,14 @@ AND    TABLE_NAME = '#{model_class.table_name}'
       id = nil
 
       1000.times do |i|
-        id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
+        _id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
+        id ||= _id
       end
 
       @count = model_class.count
 
       1000.times do |i|
-        connection.update model_class, id - 1000 + i, :name => "Update#{i}", :age => i, :status => rand(2).zero?
+        connection.update model_class, id + i, :name => "Update#{i}", :age => i, :status => rand(2).zero?
       end
     end
 
@@ -190,7 +191,46 @@ AND    TABLE_NAME = '#{model_class.table_name}'
   end
 
   describe "#delete" do
-    it
+    context "with exists id" do
+      before :each do
+        @id = connection.delete model_class, 1
+      end
+
+      subject { model_class.find_by_id @id }
+      it      { should be_nil }
+    end
+
+    context "with unknown id" do
+      subject { lambda { connection.delete model_class, 0 } }
+      it      { should_not raise_error }
+    end
+
+    context "with nil value given" do
+      subject { lambda { connection.delete model_class, nil } }
+      it      { should raise_error ArgumentError }
+    end
+  end
+
+  describe "#delete many" do
+    it "should all delete" do
+      id = nil
+      model_class.delete_all
+
+      expect(model_class.count).to eql 0
+
+      1000.times do |i|
+        _id = connection.insert model_class, :name => "Name#{i}", :age => i, :status => rand(2).zero?
+        id ||= _id
+      end
+
+      expect(model_class.count).to eql 1000
+
+      1000.times do |i|
+        connection.delete model_class, id + i
+      end
+
+      expect(model_class.count).to eql 0
+    end
   end
 
   describe "#current_time_from_proper_timezone" do
